@@ -39,44 +39,68 @@ def parlay(odds_list):
     return parlay_probability
 
 
-amount = 10
-odds = 200
-total_cost = 0
-bets = 0
-win = 0
-lost = 0
+# Simulate the batch betting strategy
+def simulate_batch_betting(
+    odds=-110,
+    paid_odds=-110,
+    goal=200,
+    initial_balance=100,
+    bet_percentage=0.025,
+    bets_per_batch=10,
+    iterations=10_000,
+    max_bets=1_000_000,
+):
+    win = 0
+    lost = 0
+    bets_to_goal = []
 
-for _ in range(100_000):
-    bank_account = 100
-    amount = 10
+    for _ in range(iterations):
+        current_balance = initial_balance
+        bets = 0
 
-    while bank_account > 0 and bank_account < 200 and bets < 1_000_000:
-        bets += 1
-        won = False
-        while not won:
-            if bank_account <= 0: break
-            if bank_account - amount < 0:
-                amount = bank_account
-            bank_account -= amount
-            num = random.random()
-            if num < american_to_percentage(odds):
-                won = True
-                bank_account += calculate_winnings(odds, amount) + amount
-                amount = 10
-            else:
-                amount *= 2
-            if bank_account >= 200: break
-    if bank_account > 0:
-        win += 1
-    else:
-        lost += 1
-    
+        while 0 < current_balance < goal and bets < max_bets:
+            bets += 1
+            bet_amount = (
+                current_balance * bet_percentage
+            )  # Bet a percentage of the current balance
+            bet_amount = min(
+                bet_amount, current_balance
+            )  # Ensure bet doesn't exceed balance
+
+            # Perform a batch of bets
+            batch_winnings = 0
+            for _ in range(bets_per_batch):
+                if random.random() < american_to_percentage(odds):
+                    batch_winnings += calculate_winnings(paid_odds, bet_amount) + bet_amount
+
+            # Update balance with winnings (or losses)
+            current_balance += batch_winnings - bet_amount * bets_per_batch
+
+            # Break if the goal is reached
+            if current_balance >= goal:
+                bets_to_goal.append(bets)
+                break
+
+        # Track wins and losses
+        if current_balance >= goal:
+            win += 1
+        else:
+            lost += 1
+
+    # Calculate average bets to reach the goal for successful sessions
+    average_bets_to_goal = sum(bets_to_goal) / len(bets_to_goal) if bets_to_goal else 0
+
+    # Return results as a tuple
+    return win / iterations, average_bets_to_goal
 
 
-
-print("WON:", win)
-print("LOST:", lost)
-
-print("Chances of Suceeding:", win/100_000)
-
-
+simulate_batch_betting(
+    odds=-135,
+    paid_odds=-110,
+    goal=200,
+    initial_balance=100,
+    bet_percentage=0.025,
+    bets_per_batch=10,
+    iterations=1,
+    max_bets=1_000_000,
+)
