@@ -1,106 +1,37 @@
-import math
-import random
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import time
-import numpy as np
 
+# Set up Chrome options
+chrome_options = Options()
+# chrome_options.add_argument("--headless")  # Run in headless mode
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
 
-def american_to_percentage(odds):
-    if odds >= 100:
-        return 100 / (odds + 100)
-    elif odds <= -100:
-        return abs(odds) / (abs(odds) + 100)
-    else:
-        print("Invalid Number, cannot be between -100 and 100")
-        return None
+# Initialize the WebDriver
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
+try:
+    url = "https://www.pinnacle.com/en/basketball/nba/matchups/#all"
+    driver.get(url)
+    time.sleep(5)
 
-def percentage_to_american(probability):
-    if probability == 0:
-        return None
-    elif probability > 0.5:
-        return round((probability * 100) / (1 - probability) * -1)
-    else:
-        return round((100 / probability) - 100)
+    today_div = driver.find_element(By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div')
 
+    # elements = today_div.find_elements(By.TAG_NAME, "a")
+    
+    # print(len(elements))
+    print("Element Text:", today_div.text)
+    # print(elements)
 
-def calculate_winnings(odds, bet_amount):
-    if odds > 0:
-        winnings = (odds / 100) * bet_amount
-    else:
-        winnings = (100 / abs(odds)) * bet_amount
+except Exception as e:
+    print("An error occurred:", e)
 
-    return round(winnings, 2)
-
-
-def parlay(odds_list):
-    parlay_probability = 1
-    for odds in odds_list:
-        parlay_probability *= american_to_percentage(odds)
-    return parlay_probability
-
-
-# Simulate the batch betting strategy
-def simulate_batch_betting(
-    odds=-110,
-    paid_odds=-110,
-    goal=200,
-    initial_balance=100,
-    bet_percentage=0.025,
-    bets_per_batch=10,
-    iterations=10_000,
-    max_bets=1_000_000,
-):
-    win = 0
-    lost = 0
-    bets_to_goal = []
-
-    for _ in range(iterations):
-        current_balance = initial_balance
-        bets = 0
-
-        while 0 < current_balance < goal and bets < max_bets:
-            bets += 1
-            bet_amount = (
-                current_balance * bet_percentage
-            )  # Bet a percentage of the current balance
-            bet_amount = min(
-                bet_amount, current_balance
-            )  # Ensure bet doesn't exceed balance
-
-            # Perform a batch of bets
-            batch_winnings = 0
-            for _ in range(bets_per_batch):
-                if random.random() < american_to_percentage(odds):
-                    batch_winnings += calculate_winnings(paid_odds, bet_amount) + bet_amount
-
-            # Update balance with winnings (or losses)
-            current_balance += batch_winnings - bet_amount * bets_per_batch
-
-            # Break if the goal is reached
-            if current_balance >= goal:
-                bets_to_goal.append(bets)
-                break
-
-        # Track wins and losses
-        if current_balance >= goal:
-            win += 1
-        else:
-            lost += 1
-
-    # Calculate average bets to reach the goal for successful sessions
-    average_bets_to_goal = sum(bets_to_goal) / len(bets_to_goal) if bets_to_goal else 0
-
-    # Return results as a tuple
-    return win / iterations, average_bets_to_goal
-
-
-simulate_batch_betting(
-    odds=-135,
-    paid_odds=-110,
-    goal=200,
-    initial_balance=100,
-    bet_percentage=0.025,
-    bets_per_batch=10,
-    iterations=1,
-    max_bets=1_000_000,
-)
+finally:
+    # Quit the driver
+    driver.quit()
