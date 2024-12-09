@@ -1,47 +1,78 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-import time
+import json
 
-# Set up Chrome options
-chrome_options = Options()
-# chrome_options.add_argument("--headless")  # Run in headless mode
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--no-sandbox")
+# Load the data from your JSON file
+with open('data.json', 'r') as file:
+    data = json.load(file)
 
-# Initialize the WebDriver
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=chrome_options)
+def calculate_implied_probability(odds):
+    """Calculate the implied probability from American odds."""
+    odds = float(odds)
+    if odds < 0:  # Negative odds
+        return -odds / (-odds + 100)
+    else:  # Positive odds
+        return 100 / (odds + 100)
 
-try:
-    url = "https://www.pinnacle.com/en/basketball/nba/matchups/#all"
-    driver.get(url)
-    time.sleep(5)
-
-    # today_div = driver.find_element(By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div')
-    games = driver.find_elements(By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div/div')
-    for i in range(3, len(games)):
-        game = driver.find_elements(By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div/div[' + str(i) + ']')
-        print('game', game)
-        link = game.find_element(By.TAG_NAME, 'a').get_attribute("href")
-        print(link)
-    # print(len(games))
+def find_value_bets(sportsbook=None):
+    """Find value bets where odds are at least 5% in favor."""
+    value_bets = []
     
-    # //*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div/div[3]
-
-
-    # elements = today_div.find_elements(By.TAG_NAME, "a")
+    for game, props in data.items():
+        for prop_name, odds_data in props.items():
+            if sportsbook:
+                # If a sportsbook is selected, compare only for that one
+                if sportsbook in odds_data:
+                    selected_odds = odds_data[sportsbook]
+                    for other_sportsbook, other_odds_data in odds_data.items():
+                        if other_sportsbook != sportsbook:
+                            # Compare with other sportsbooks
+                            selected_prob = calculate_implied_probability(selected_odds['over_odds'])
+                            other_prob = calculate_implied_probability(other_odds_data['over_odds'])
+                            
+                            # Check if the odds are at least 5% better for the selected sportsbook
+                            if (selected_prob - other_prob) >= 0.05:
+                                value_bets.append({
+                                    'game': game,
+                                    'prop': prop_name,
+                                    'selected_sportsbook': sportsbook,
+                                    'selected_odds': selected_odds['over_odds'],
+                                    'other_sportsbook': other_sportsbook,
+                                    'other_odds': other_odds_data['over_odds'],
+                                    'selected_prob': selected_prob,
+                                    'other_prob': other_prob,
+                                })
+            else:
+                # Compare across all sportsbooks
+                for sportsbook_name, odds in odds_data.items():
+                    for other_sportsbook, other_odds in odds_data.items():
+                        if sportsbook_name != other_sportsbook:
+                            selected_prob = calculate_implied_probability(odds['over_odds'])
+                            other_prob = calculate_implied_probability(other_odds['over_odds'])
+                            
+                            # Check if the odds are at least 5% better for the selected sportsbook
+                            if (selected_prob - other_prob) >= 0.05:
+                                value_bets.append({
+                                    'game': game,
+                                    'prop': prop_name,
+                                    'selected_sportsbook': sportsbook_name,
+                                    'selected_odds': odds['over_odds'],
+                                    'other_sportsbook': other_sportsbook,
+                                    'other_odds': other_odds['over_odds'],
+                                    'selected_prob': selected_prob,
+                                    'other_prob': other_prob,
+                                })
     
-    # print(len(elements))
-    # print("Element Text:", today_div.text)
-    # print(elements)
+    return value_bets
 
-except Exception as e:
-    print("An error occurred:", e)
+# Example usage
+sportsbook = input("Enter sportsbook name (or press enter to search across all): ").strip()
+value_bets = find_value_bets(sportsbook if sportsbook else None)
 
-finally:
-    # Quit the driver
-    driver.quit()
+# Print out the value bets
+if value_bets:
+    for bet in value_bets:
+        print(f"Game: {bet['game']}, Prop: {bet['prop']}")
+        print(f"Selected sportsbook: {bet['selected_sportsbook']} - Odds: {bet['selected_odds']} (Implied probability: {bet['selected_prob'] * 100:.2f}%)")
+        print(f"Other sportsbook: {bet['other_sportsbook']} - Odds: {bet['other_odds']} (Implied probability: {bet['other_prob'] * 100:.2f}%)")
+        print("-" * 80)
+else:
+    print("No value bets found.")

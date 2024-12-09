@@ -1,74 +1,18 @@
-odds_data = [
-    {
-        "game": "Lakers vs Jazz",
-        "props": [
-            {
-                "player": "LeBron James",
-                "prop": "Points",
-                "line": 27.5,
-                "odds": {
-                    "Pinnacle": {"over": -110, "under": -110},
-                    "Fliff": {"over": -115, "under": -105},
-                },
-            },
-            {
-                "player": "Anthony Davis",
-                "prop": "Rebounds",
-                "line": 12.5,
-                "odds": {
-                    "Pinnacle": {"over": -120, "under": -110},
-                    "Fliff": {"over": -125, "under": -105},
-                },
-            },
-        ],
-    },
-    {
-        "game": "Warriors vs Nuggets",
-        "props": [
-            {
-                "player": "Stephen Curry",
-                "prop": "Points",
-                "line": 30.5,
-                "odds": {
-                    "Pinnacle": {"over": -125, "under": 105},
-                    "Fliff": {"over": -130, "under": 100},
-                },
-            },
-            {
-                "player": "Nikola Jokic",
-                "prop": "Points",
-                "line": 25.5,
-                "odds": {
-                    "Pinnacle": {"over": -140, "under": 110},
-                    "Fliff": {"over": -105, "under": 115},
-                },
-            },
-        ],
-    },
-    {
-        "game": "Bucks vs Mavericks",
-        "props": [
-            {
-                "player": "Giannis Antetokounmpo",
-                "prop": "Points",
-                "line": 28.5,
-                "odds": {
-                    "Pinnacle": {"over": -115, "under": -105},
-                    "Fliff": {"over": -120, "under": 100},
-                },
-            },
-            {
-                "player": "Luka Doncic",
-                "prop": "Points",
-                "line": 29.5,
-                "odds": {
-                    "Pinnacle": {"over": -110, "under": -110},
-                    "Fliff": {"over": -105, "under": -115},
-                },
-            },
-        ],
-    },
-]
+def decimal_to_percentage(decimal_odds):
+    """
+    Convert decimal odds to implied probability as a percentage.
+
+    Args:
+        decimal_odds (float): The decimal odds.
+
+    Returns:
+        float: Implied probability as a percentage.
+    """
+    if decimal_odds <= 0:
+        raise ValueError("Decimal odds must be greater than 0")
+    
+    implied_probability = (1 / decimal_odds) * 100
+    return round(implied_probability, 2)
 
 
 def american_to_percentage(odds):

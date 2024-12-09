@@ -1,83 +1,52 @@
-[
-	{
-		"game": "Lakers vs Jazz",
-		"props": [
-			{
-				"player": "LeBron James",
-				"prop": "Points",
-				"line": 27.5,
-				"odds": {
-					"DraftKings": { "over": -110, "under": -110 },
-					"FanDuel": { "over": -115, "under": -105 },
-					"BetMGM": { "over": -120, "under": -110 },
-					"Caesars": { "over": -105, "under": -115 }
-				}
-			},
-			{
-				"player": "Anthony Davis",
-				"prop": "Rebounds",
-				"line": 12.5,
-				"odds": {
-					"DraftKings": { "over": -120, "under": -110 },
-					"FanDuel": { "over": -125, "under": -105 },
-					"BetMGM": { "over": -110, "under": -110 },
-					"Caesars": { "over": -130, "under": -105 }
-				}
-			}
-		]
-	},
-	{
-		"game": "Warriors vs Nuggets",
-		"props": [
-			{
-				"player": "Stephen Curry",
-				"prop": "Points",
-				"line": 30.5,
-				"odds": {
-					"DraftKings": { "over": -125, "under": 105 },
-					"FanDuel": { "over": -130, "under": 100 },
-					"BetMGM": { "over": -120, "under": 110 },
-					"Caesars": { "over": -135, "under": 105 }
-				}
-			},
-			{
-				"player": "Nikola Jokic",
-				"prop": "Points",
-				"line": 25.5,
-				"odds": {
-					"DraftKings": { "over": -140, "under": 110 },
-					"FanDuel": { "over": -145, "under": 115 },
-					"BetMGM": { "over": -135, "under": 105 },
-					"Caesars": { "over": -150, "under": 120 }
-				}
-			}
-		]
-	},
-	{
-		"game": "Bucks vs Mavericks",
-		"props": [
-			{
-				"player": "Giannis Antetokounmpo",
-				"prop": "Points",
-				"line": 28.5,
-				"odds": {
-					"DraftKings": { "over": -115, "under": -105 },
-					"FanDuel": { "over": -120, "under": 100 },
-					"BetMGM": { "over": -110, "under": -110 },
-					"Caesars": { "over": -125, "under": -105 }
-				}
-			},
-			{
-				"player": "Luka Doncic",
-				"prop": "Points",
-				"line": 29.5,
-				"odds": {
-					"DraftKings": { "over": -110, "under": -110 },
-					"FanDuel": { "over": -105, "under": -115 },
-					"BetMGM": { "over": -115, "under": -105 },
-					"Caesars": { "over": -110, "under": -110 }
-				}
-			}
-		]
-	}
-]
+{
+  "Portland Trail Blazers vs Los Angeles Lakers": {
+    "Anfernee Simons 3 Point FG": {
+      "Pinnacle": { "over_number": "2.5", "over_odds": "1.657", "under_number": "2.5", "under_odds": "2.150" },
+      "Fliff": { "over_number": "2.5", "over_odds": "-152", "under_number": "2.5", "under_odds": "+215" }
+    },
+    "Anfernee Simons Assists": {
+      "Pinnacle": { "over_number": "4.5", "over_odds": "1.641", "under_number": "4.5", "under_odds": "2.170" },
+      "Fliff": { "over_number": "4.5", "over_odds": "-155", "under_number": "4.5", "under_odds": "+220" }
+    },
+    "Anfernee Simons Points": {
+      "Pinnacle": { "over_number": "17.5", "over_odds": "1.806", "under_number": "17.5", "under_odds": "1.943" },
+      "Fliff": { "over_number": "18.0", "over_odds": "-125", "under_number": "18.0", "under_odds": "+105" }
+    },
+    "Anfernee Simons Pts+Rebs+Asts": {
+      "Pinnacle": { "over_number": "26.5", "over_odds": "1.900", "under_number": "26.5", "under_odds": "1.833" },
+      "Fliff": { "over_number": "26.5", "over_odds": "-110", "under_number": "26.5", "under_odds": "-105" }
+    },
+    "Anthony Davis Assists": {
+      "Pinnacle": { "over_number": "5.5", "over_odds": "1.909", "under_number": "5.5", "under_odds": "1.826" },
+      "Fliff": { "over_number": "5.5", "over_odds": "-115", "under_number": "5.5", "under_odds": "+105" }
+    },
+    "Anthony Davis Points": {
+      "Pinnacle": { "over_number": "31.5", "over_odds": "1.892", "under_number": "31.5", "under_odds": "1.840" },
+      "Fliff": { "over_number": "32.0", "over_odds": "+110", "under_number": "32.0", "under_odds": "-125" }
+    },
+    "Anthony Davis Pts+Rebs+Asts": {
+      "Pinnacle": { "over_number": "51.5", "over_odds": "1.917", "under_number": "51.5", "under_odds": "1.826" },
+      "Fliff": { "over_number": "51.5", "over_odds": "-120", "under_number": "51.5", "under_odds": "+100" }
+    },
+    "Anthony Davis Rebounds": {
+      "Pinnacle": { "over_number": "13.5", "over_odds": "2.000", "under_number": "13.5", "under_odds": "1.751" },
+      "Fliff": { "over_number": "13.5", "over_odds": "+125", "under_number": "13.5", "under_odds": "-135" }
+    },
+    "Dalano Banton Points": {
+      "Pinnacle": { "over_number": "9.5", "over_odds": "2.160", "under_number": "9.5", "under_odds": "1.645" },
+      "Fliff": { "over_number": "9.5", "over_odds": "+115", "under_number": "9.5", "under_odds": "-140" }
+    },
+    "Dalano Banton Pts+Rebs+Asts": {
+      "Pinnacle": { "over_number": "15.5", "over_odds": "2.020", "under_number": "15.5", "under_odds": "1.740" },
+      "Fliff": { "over_number": "15.0", "over_odds": "+105", "under_number": "15.0", "under_odds": "-125" }
+    },
+    "Dalton Knecht 3 Point FG": {
+      "Pinnacle": { "over_number": "3.5", "over_odds": "2.380", "under_number": "3.5", "under_odds": "1.537" },
+      "Fliff": { "over_number": "3.0", "over_odds": "+135", "under_number": "3.0", "under_odds": "-150" }
+    },
+    "Dalton Knecht Points": {
+      "Pinnacle": { "over_number": "15.5", "over_odds": "1.757", "under_number": "15.5", "under_odds": "2.000" },
+      "Fliff": { "over_number": "15.5", "over_odds": "110", "under_number": "15.5", "under_odds": "-105" }
+    }
+  }
+}
