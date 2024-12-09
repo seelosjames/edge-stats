@@ -36,7 +36,6 @@ def get_odds(link):
             over_odds = driver.find_element(By.XPATH, f'{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[2]').text
             under_number = re.search(r"\d+(\.\d+)?", driver.find_element(By.XPATH, f'{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[1]').text).group()
             under_odds = driver.find_element(By.XPATH, f'{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[2]').text
-            # re.search(r"\d+(\.\d+)?",
             
             player = f'{name} {item}'
             
@@ -48,16 +47,6 @@ def get_odds(link):
                     "under_odds": under_odds,
                 }
             }
-
-            # print("Name:", name)
-            # print("Item:", item)
-            # print("Over Num:", over_number)
-            # print("Over Odds:", over_odds)
-            # print("Under Num:", under_number)
-            # print("Under Odds:", under_odds)
-            # print()
-            
-            
             
         data[game] = game_data
         
@@ -84,7 +73,7 @@ try:
     url = "https://www.pinnacle.com/en/basketball/nba/matchups/#all"
     driver.get(url)
     
-
+    time.sleep(5)
     # Wait for the page to load (adjust sleep time based on network conditions)
     time.sleep(1)
     # get_odds('https://www.pinnacle.com/en/basketball/nba/portland-trail-blazers-vs-los-angeles-lakers/1601576438/')
