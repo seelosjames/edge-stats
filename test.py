@@ -1,53 +1,63 @@
-def decimal_to_percentage(decimal_odds):
+import json
+from betting_functions import *
+
+
+def find_value_bets(
+    json_data, target_sportsbook="Fliff", reference_sportsbook="Pinnacle", edge=0.04
+):
     """
-    Convert decimal odds to implied probability as a percentage.
+    Find value bets for a specific sportsbook compared to a reference sportsbook.
 
     Args:
-        decimal_odds (float): The decimal odds.
+        json_data (dict): The JSON data containing sportsbook odds.
+        target_sportsbook (str): The sportsbook for which to find value bets.
+        reference_sportsbook (str): The reference sportsbook for fair odds.
+        edge (float): The minimum percentage edge to consider a value bet (default 5%).
 
     Returns:
-        float: Implied probability as a percentage.
+        list: A list of value bets with details.
     """
-    if decimal_odds <= 0:
-        raise ValueError("Decimal odds must be greater than 0")
-    
-    implied_probability = (1 / decimal_odds) * 100
-    return round(implied_probability, 2)
-
-
-def american_to_percentage(odds):
-    if odds >= 100:
-        return 100 / (odds + 100)
-    elif odds <= -100:
-        return abs(odds) / (abs(odds) + 100)
-    else:
-        print("Invalid Number, cannot be between -100 and 100")
-        return None
-
-
-# Function to identify value bets
-def find_value_bets(data):
     value_bets = []
 
-    # Loop through each game
-    for game in data:
-        game_name = game["game"]
+    for game, game_data in json_data.items():
+        for player_prop, prop_data in game_data.items():
+            if target_sportsbook in prop_data and reference_sportsbook in prop_data:
+                if (
+                    prop_data[target_sportsbook]["over_number"]
+                    == prop_data[reference_sportsbook]["over_number"]
+                ):
+                    target_over = prop_data[target_sportsbook]["over_odds"]
+                    target_under = prop_data[target_sportsbook]["under_odds"]
+                    reference_over = prop_data[reference_sportsbook]["over_odds"]
+                    reference_under = prop_data[reference_sportsbook]["under_odds"]
 
-        # Loop through each player prop
-        for prop in game["props"]:
-            player = prop["player"]
-            prop_type = prop["prop"]
-            line = prop["line"]
-            odds = prop["odds"]
+                    if (
+                        american_to_percentage(reference_over) / 100
+                        - american_to_percentage(target_over) / 100
+                        > edge
+                    ):
+                        value_bets.append(f"Take the over for {player_prop}")
+                    elif (
+                        american_to_percentage(reference_under) / 100
+                        - american_to_percentage(target_under) / 100
+                        > edge
+                    ):
+                        value_bets.append(f"Take the under for {player_prop}")
 
-            # Compare odds across sportsbooks
-            for sportsbook, values in odds.items():
-                print(sportsbook, values)
-                # for bet_type, odd in values.items():
-
-            print()
-
-                    
     return value_bets
 
-find_value_bets(odds_data)
+
+# Example usage with JSON data
+def main():
+    # Load your JSON data here
+    with open("data.json", "r") as file:
+        json_data = json.load(file)
+
+    value_bets = find_value_bets(json_data)
+
+    for bet in value_bets:
+        print(bet)
+
+
+if __name__ == "__main__":
+    main()
