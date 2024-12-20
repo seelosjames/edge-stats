@@ -8,7 +8,7 @@ import time
 import re
 
 
-def initialize_data():
+def get_games():
     """
     Fetches today's NBA matchups and their associated links from Pinnacle's website.
     """
@@ -203,6 +203,7 @@ def get_fliff_odds(data):
 def get_pinnacle_odds(driver, data, link):
     try:
         driver.get(link)
+        time.sleep(4)
 
         # Show all props
         driver.find_element(
