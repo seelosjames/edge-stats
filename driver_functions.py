@@ -7,8 +7,15 @@ from betting_functions import *
 import time
 import re
 
+sports_links = {
+    "basketball": {
+        "pinnacle": "https://www.pinnacle.com/en/basketball/nba/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=461",
+    }
+}
 
-def get_games():
+
+def get_games(sports="basketball"):
     """
     Fetches today's NBA matchups and their associated links from Pinnacle's website.
     """
@@ -26,7 +33,6 @@ def get_games():
 
     # Dictionary to store matchup data
     data = {}
-    pinnacle_links = []
 
     try:
         url = "https://www.pinnacle.com/en/basketball/nba/matchups/#all"
@@ -66,8 +72,6 @@ def get_games():
                 pinnacle_links.append(link_container.get_attribute("href"))
 
         # Pinnacle
-        for link in pinnacle_links:
-            get_pinnacle_odds(driver, data, link)
         driver.quit()
 
         # Fliff
@@ -77,6 +81,92 @@ def get_games():
 
     except Exception as e:
         print("An error occurred while fetching matchups:", e)
+
+
+def get_pinnacle_games(data, link, driver):
+    try:
+        driver.get(link)
+        time.sleep(4)
+
+        # Show all props
+        driver.find_element(
+            By.XPATH,
+            '//*[@id="root"]/div[1]/div[2]/main/div[3]/div[1]/div[1]/div[1]/div/button',
+        ).click()
+
+        # Get the matchup to use as the data key
+        away_team = driver.find_element(
+            By.XPATH,
+            '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[3]/div[2]/div/label',
+        ).text
+        home_team = driver.find_element(
+            By.XPATH,
+            '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label',
+        ).text
+        game = f"{away_team} vs {home_team}"  # Key for data dict
+
+        # Get player prop div # and number of player props available
+        lenth = len(
+            driver.find_elements(
+                By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div[3]/div'
+            )
+        )
+        player_props = f'//*[@id="root"]/div[1]/div[2]/main/div[3]/div[{str(lenth)}]'
+        num_props = len(driver.find_elements(By.XPATH, f"{player_props}/div"))
+
+        # Initialize Game Data
+        game_data = {}
+
+        # Loop through player props
+        for i in range(1, num_props + 1):
+            # Get and format Prop info
+            info = driver.find_element(
+                By.XPATH, f"{player_props}/div[{str(i)}]/div[1]/span[1]"
+            ).text
+            name = info.split("(")[0].strip()
+            item = info.split("(")[1].rstrip(")")
+            over_number = re.search(
+                r"\d+(\.\d+)?",
+                driver.find_element(
+                    By.XPATH,
+                    f"{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[1]",
+                ).text,
+            ).group()
+            over_odds = driver.find_element(
+                By.XPATH,
+                f"{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[2]",
+            ).text
+            under_number = re.search(
+                r"\d+(\.\d+)?",
+                driver.find_element(
+                    By.XPATH,
+                    f"{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[1]",
+                ).text,
+            ).group()
+            under_odds = driver.find_element(
+                By.XPATH,
+                f"{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[2]",
+            ).text
+
+            # Initialize player and prop type
+            player = f"{name} {item}"
+
+            # Save info to game_data
+            game_data[player] = {
+                "Pinnacle": {
+                    "over_number": float(over_number),
+                    "over_odds": decimal_to_american(float(over_odds)),
+                    "under_number": float(under_number),
+                    "under_odds": decimal_to_american(float(under_odds)),
+                    "link": link,
+                }
+            }
+
+        data[game] = game_data
+        return data
+
+    except Exception as e:
+        print(f"Error while processing link {link}: {e}")
 
 
 def get_fliff_odds(data):
