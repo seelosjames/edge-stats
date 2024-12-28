@@ -2,171 +2,187 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from betting_functions import *
 import time
-import re
+from datetime import datetime
+import hashlib
+import json
 
 sports_links = {
-    "basketball": {
+    "nba": {
         "pinnacle": "https://www.pinnacle.com/en/basketball/nba/matchups/#all",
         "fliff": "https://sports.getfliff.com/channels?channelId=461",
-    }
+    },
+    "nhl": {
+        "pinnacle": "https://www.pinnacle.com/en/hockey/nhl/matchups/#period:0",
+        "fliff": "https://sports.getfliff.com/channels?channelId=481",
+    },
+    "nfl": {
+        "pinnacle": "https://www.pinnacle.com/en/football/nfl/matchups/#all",
+    },
+    "ncaaf": {"pinnacle": "https://www.pinnacle.com/en/football/ncaa/matchups/#all"},
+    "ncaab": {"pinnacle": "https://www.pinnacle.com/en/basketball/ncaa/matchups/#all"},
+    "epl": {
+        "pinnacle": "https://www.pinnacle.com/en/soccer/england-premier-league/matchups/#all"
+    },
+    "bundesliga": {
+        "pinnacle": "https://www.pinnacle.com/en/soccer/germany-bundesliga/matchups/#all"
+    },
+    "ligue_1": {
+        "pinnacle": "https://www.pinnacle.com/en/soccer/france-ligue-1/matchups/#all"
+    },
+    "serie_a": {
+        "pinnacle": "https://www.pinnacle.com/en/soccer/italy-serie-a/matchups/#all"
+    },
+    "laliga": {
+        "pinnacle": "https://www.pinnacle.com/en/soccer/spain-la-liga/matchups/#all"
+    },
 }
 
+# XPaths for Pinnacle elements
+XPATH_DATE = '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[2]/div/span'
+XPATH_TEAM_1 = (
+    '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[3]/div[2]/div/label'
+)
+XPATH_TEAM_2 = (
+    '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label'
+)
 
-def get_games(sports="basketball"):
-    """
-    Fetches today's NBA matchups and their associated links from Pinnacle's website.
-    """
 
+# Function to create a unique ID
+def generate_id(team_1, team_2, date_time_str):
+    combined_string = f"{team_1}_{team_2}_{date_time_str}"
+    return hashlib.md5(combined_string.encode()).hexdigest()
+
+
+def get_games(
+    sports=[
+        "nba",
+        "nfl",
+        "nhl",
+        "ncaaf",
+        "ncaab",
+        "epl",
+        "bundesliga",
+        "ligue_1",
+        "serie_a",
+        "laliga",
+    ]
+):
+    # Dictionary to store matchup data
+    data = []
+
+    for sport in sports:
+        get_pinnacle_games(sports_links[sport]["pinnacle"], data, sport)
+        # get_fliff_games(sports_links[sport]["fliff"])
+
+    with open("data.json", "w") as f:
+        json.dump(data, f, default=str, indent=4)
+
+
+def get_pinnacle_games(url, data, sport):
     # Configure Chrome options
     chrome_options = Options()
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
-    # Uncomment the line below to run the browser in headless mode
-    # chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--window-size=1920,1080")
 
     # Initialize the WebDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    # Dictionary to store matchup data
-    data = {}
+    sports_book_name = "pinnacle"
 
     try:
-        url = "https://www.pinnacle.com/en/basketball/nba/matchups/#all"
         driver.get(url)
-        time.sleep(1)  # Allow the page to load
 
-        # Locate all game containers
-        games = driver.find_elements(
-            By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div/div'
+        # Wait for the games container to load
+        games = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located(
+                (
+                    By.XPATH,
+                    '//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div/div',
+                )
+            )
         )
 
-        today = False
+        game_urls = []
 
-        # Loop through each game container to extract relevant data
-        for i in range(1, len(games) + 1):
-            game_element = driver.find_element(
-                By.XPATH,
-                f'//*[@id="root"]/div[1]/div[2]/main/div/div[4]/div[2]/div/div[{i}]',
+        # Loop through each game element to extract url
+        for game in games:
+            if game.get_attribute("class") == "row-u9F3b9WCM3 row-k9ktBvvTsJ":
+                link_container = game.find_element(By.TAG_NAME, "a")
+                game_urls.append(link_container.get_attribute("href"))
+
+        for game_url in game_urls:
+            driver.get(game_url)
+
+            # Extract details
+            date_time_str = (
+                WebDriverWait(driver, 10)
+                .until(EC.presence_of_element_located((By.XPATH, XPATH_DATE)))
+                .text
             )
 
-            game_class = game_element.get_attribute("class")
+            team_1 = (
+                WebDriverWait(driver, 10)
+                .until(EC.presence_of_element_located((By.XPATH, XPATH_TEAM_1)))
+                .text
+            )
 
-            if "TODAY" not in game_element.text and "dateBar" in game_class:
-                today = False
+            team_2 = (
+                WebDriverWait(driver, 10)
+                .until(EC.presence_of_element_located((By.XPATH, XPATH_TEAM_2)))
+                .text
+            )
 
-            if "TODAY" in game_element.text:
-                today = True
+            # Parse datetime
+            date_time_obj = datetime.strptime(date_time_str, "%A, %B %d, %Y at %H:%M")
+            game_id = generate_id(
+                team_1, team_2, date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
+            )
 
-            if today and game_class == "row-u9F3b9WCM3 row-k9ktBvvTsJ":
-                # Extract hyperlink and team names for the game
-                link_container = game_element.find_element(By.TAG_NAME, "a")
-                teams = link_container.find_elements(By.TAG_NAME, "span")
-                matchup = f"{teams[0].text} vs {teams[1].text}"
+            # Add to data if new
+            if game_id not in {entry["id"] for entry in data}:
+                data.append(
+                    {
+                        "id": game_id,
+                        "game": {
+                            "teams": [team_1, team_2],
+                            "date": date_time_obj,
+                            "league": sport,
+                        },
+                        "links": {sports_book_name: game_url},
+                    }
+                )
 
-                # Initialize matchup in data and add save the Pinnacle link
-                data[matchup] = {}
-                pinnacle_links.append(link_container.get_attribute("href"))
-
-        # Pinnacle
+    except Exception as e:
+        print(f"Error while processing link {url}: {e}")
+    finally:
         driver.quit()
 
-        # Fliff
-        data = get_fliff_odds(data)
 
-        return data
-
-    except Exception as e:
-        print("An error occurred while fetching matchups:", e)
-
-
-def get_pinnacle_games(data, link, driver):
-    try:
-        driver.get(link)
-        time.sleep(4)
-
-        # Show all props
-        driver.find_element(
-            By.XPATH,
-            '//*[@id="root"]/div[1]/div[2]/main/div[3]/div[1]/div[1]/div[1]/div/button',
-        ).click()
-
-        # Get the matchup to use as the data key
-        away_team = driver.find_element(
-            By.XPATH,
-            '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[3]/div[2]/div/label',
-        ).text
-        home_team = driver.find_element(
-            By.XPATH,
-            '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label',
-        ).text
-        game = f"{away_team} vs {home_team}"  # Key for data dict
-
-        # Get player prop div # and number of player props available
-        lenth = len(
-            driver.find_elements(
-                By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div[3]/div'
-            )
-        )
-        player_props = f'//*[@id="root"]/div[1]/div[2]/main/div[3]/div[{str(lenth)}]'
-        num_props = len(driver.find_elements(By.XPATH, f"{player_props}/div"))
-
-        # Initialize Game Data
-        game_data = {}
-
-        # Loop through player props
-        for i in range(1, num_props + 1):
-            # Get and format Prop info
-            info = driver.find_element(
-                By.XPATH, f"{player_props}/div[{str(i)}]/div[1]/span[1]"
-            ).text
-            name = info.split("(")[0].strip()
-            item = info.split("(")[1].rstrip(")")
-            over_number = re.search(
-                r"\d+(\.\d+)?",
-                driver.find_element(
-                    By.XPATH,
-                    f"{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[1]",
-                ).text,
-            ).group()
-            over_odds = driver.find_element(
-                By.XPATH,
-                f"{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[2]",
-            ).text
-            under_number = re.search(
-                r"\d+(\.\d+)?",
-                driver.find_element(
-                    By.XPATH,
-                    f"{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[1]",
-                ).text,
-            ).group()
-            under_odds = driver.find_element(
-                By.XPATH,
-                f"{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[2]",
-            ).text
-
-            # Initialize player and prop type
-            player = f"{name} {item}"
-
-            # Save info to game_data
-            game_data[player] = {
-                "Pinnacle": {
-                    "over_number": float(over_number),
-                    "over_odds": decimal_to_american(float(over_odds)),
-                    "under_number": float(under_number),
-                    "under_odds": decimal_to_american(float(under_odds)),
-                    "link": link,
-                }
-            }
-
-        data[game] = game_data
-        return data
-
-    except Exception as e:
-        print(f"Error while processing link {link}: {e}")
+# Example usage
+if __name__ == "__main__":
+    get_games(
+        [
+            "nba",
+            "nfl",
+            "nhl",
+            "ncaaf",
+            "ncaab",
+            "epl",
+            "bundesliga",
+            "ligue_1",
+            "serie_a",
+            "laliga",
+        ]
+    )
 
 
 def get_fliff_odds(data):

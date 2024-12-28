@@ -11,8 +11,9 @@ import re
 
 
 
+
 # Fetch and print matchup data
-get_games()
+data = get_games()
 
 
 # Specify the filename

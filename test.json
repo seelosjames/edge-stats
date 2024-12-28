@@ -1,8 +1,10 @@
 [
 	{
+		"id": "test",
 		"game": {
 			"teams": ["Atlanta Hawks", "New York Knicks"],
-			"date": "2024-12-19"
+			"date": "2024-12-19",
+			"league": "nfl"
 		},
 		"links": {
 			"Pinnacle": "https://www.pinnacle.com/en/basketball/nba/atlanta-hawks-vs-new-york-knicks/1601937542/#all",
