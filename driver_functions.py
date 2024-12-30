@@ -24,23 +24,35 @@ sports_links = {
     },
     "nfl": {
         "pinnacle": "https://www.pinnacle.com/en/football/nfl/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=451",
     },
-    "ncaaf": {"pinnacle": "https://www.pinnacle.com/en/football/ncaa/matchups/#all"},
-    "ncaab": {"pinnacle": "https://www.pinnacle.com/en/basketball/ncaa/matchups/#all"},
+    "ncaaf": {
+        "pinnacle": "https://www.pinnacle.com/en/football/ncaa/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=452",
+    },
+    "ncaab": {
+        "pinnacle": "https://www.pinnacle.com/en/basketball/ncaa/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=462",
+    },
     "epl": {
-        "pinnacle": "https://www.pinnacle.com/en/soccer/england-premier-league/matchups/#all"
+        "pinnacle": "https://www.pinnacle.com/en/soccer/england-premier-league/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=4385",
     },
     "bundesliga": {
-        "pinnacle": "https://www.pinnacle.com/en/soccer/germany-bundesliga/matchups/#all"
+        "pinnacle": "https://www.pinnacle.com/en/soccer/germany-bundesliga/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=4382",
     },
     "ligue_1": {
-        "pinnacle": "https://www.pinnacle.com/en/soccer/france-ligue-1/matchups/#all"
+        "pinnacle": "https://www.pinnacle.com/en/soccer/france-ligue-1/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=4384",
     },
     "serie_a": {
-        "pinnacle": "https://www.pinnacle.com/en/soccer/italy-serie-a/matchups/#all"
+        "pinnacle": "https://www.pinnacle.com/en/soccer/italy-serie-a/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=4388",
     },
     "laliga": {
-        "pinnacle": "https://www.pinnacle.com/en/soccer/spain-la-liga/matchups/#all"
+        "pinnacle": "https://www.pinnacle.com/en/soccer/spain-la-liga/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=4395",
     },
 }
 
@@ -105,11 +117,11 @@ def save_data(data, file_path="data.json"):
 
 # Function to update or append game data
 def update_or_add_game(data, new_game, book):
-    new_game_link = new_game['links'][book]
+    new_game_link = new_game["links"][book]
     # Look for existing game by ID
     for existing_game in data:
         if existing_game["id"] == new_game["id"]:
-            existing_game['links'][book] = new_game_link
+            existing_game["links"][book] = new_game_link
             return  # Exit after updating the existing game
     # If no match, add the new game
     data.append(new_game)
@@ -134,8 +146,8 @@ def get_games(
     data = load_existing_data()
 
     for sport in sports:
-        # get_pinnacle_games(sports_links[sport]["pinnacle"], data, sport)
-        get_fliff_games(sports_links[sport]["fliff"], data, sport)
+        get_pinnacle_games(sports_links[sport]["pinnacle"], data, sport)
+        # get_fliff_games(sports_links[sport]["fliff"], data, sport)
 
     with open("data.json", "w") as f:
         json.dump(data, f, default=str, indent=4)
@@ -203,6 +215,8 @@ def get_pinnacle_games(url, data, sport):
             date_time_obj = datetime.strptime(date_time_str, "%A, %B %d, %Y at %H:%M")
             if sport == "nba":
                 date_time_obj = date_time_obj - timedelta(minutes=10)
+            elif sport == "nhl":
+                date_time_obj = date_time_obj - timedelta(minutes=7)
 
             game_id = generate_id(
                 team_1, team_2, date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -291,7 +305,9 @@ def get_fliff_games(url, data, sport):
 
             # Wait for the game containers to be loaded
             games = WebDriverWait(driver, 10).until(
-                EC.presence_of_all_elements_located((By.CLASS_NAME, "card-shared-container"))
+                EC.presence_of_all_elements_located(
+                    (By.CLASS_NAME, "card-shared-container")
+                )
             )
 
             # Find the specific game card header for the game
@@ -299,9 +315,7 @@ def get_fliff_games(url, data, sport):
             card_footer = games[i].find_element(By.CLASS_NAME, "card-regular-footer")
 
             # Wait for the card header to be clickable
-            WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable(card_header)
-            )
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(card_header))
 
             # Scroll the element into view using ActionChains
             actions = ActionChains(driver)
@@ -310,9 +324,8 @@ def get_fliff_games(url, data, sport):
             # Attempt a regular click
             try:
                 card_header.click()
-                print("CORRECT CLICK")
             except Exception as e:
-                print(f"Click failed, trying JavaScript click: {e}")
+                # print(f"Click failed, trying JavaScript click: {e}")
                 # Use JavaScript to click the element if regular click fails
                 driver.execute_script("arguments[0].click();", card_header)
 
@@ -322,8 +335,6 @@ def get_fliff_games(url, data, sport):
                 )
             )
             new_game["links"] = {sports_book_name: driver.current_url}
-
-            print(new_game)
 
             # Update or add the game
             update_or_add_game(data, new_game, sports_book_name)
@@ -338,8 +349,8 @@ def get_fliff_games(url, data, sport):
 if __name__ == "__main__":
     get_games(
         [
-            "nba",
-            # "nfl",
+            # "nba",
+            "nfl",
             # "nhl",
             # "ncaaf",
             # "ncaab",
@@ -374,7 +385,6 @@ def get_fliff_odds(data):
             if "Today" in label:
                 today_index.append(i)
 
-        print("INDEXES", today_index)
         time.sleep(5)
 
         for i in today_index:
