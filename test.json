@@ -8,7 +8,14 @@
 		},
 		"links": {
 			"pinnacle": "https://www.pinnacle.com/en/basketball/nba/oklahoma-city-thunder-vs-charlotte-hornets/1602426592/"
-		}
+		},
+		"props": [
+			{
+				"prop": "Spread Game",
+				"type": "game",
+				""
+			}
+		]
 	},
 	{
 		"id": "0eb74b6a1ed8a8ea18b823a1a3d0b893",

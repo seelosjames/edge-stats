@@ -1,5 +1,5 @@
 import json
-from betting_functions import *
+from functions.betting import *
 
 
 def find_value_bets(

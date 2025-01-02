@@ -1,0 +1,125 @@
+[
+    {
+        "id": "afe79bca43d77eaf0a7eee888cdd4c17",
+        "game": {
+            "teams": [
+                "Chicago Bulls",
+                "Washington Wizards"
+            ],
+            "date": "2025-01-01 17:00:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/chicago-bulls-vs-washington-wizards/1602515202/",
+            "fliff": "https://sports.getfliff.com/markets/271945_c_p_204_prematch"
+        },
+        "league": "nba",
+        "props": [
+            {}
+        ]
+    },
+    {
+        "id": "cafe5dde51be788f7f1e082ad6e913af",
+        "game": {
+            "teams": [
+                "Orlando Magic",
+                "Detroit Pistons"
+            ],
+            "date": "2025-01-01 17:00:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/orlando-magic-vs-detroit-pistons/1602514932/",
+            "fliff": "https://sports.getfliff.com/markets/271942_c_p_204_prematch"
+        },
+        "league": "nba"
+    },
+    {
+        "id": "268175eb25c5adb9e275e7bb9896050a",
+        "game": {
+            "teams": [
+                "New Orleans Pelicans",
+                "Miami Heat"
+            ],
+            "date": "2025-01-01 17:30:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/new-orleans-pelicans-vs-miami-heat/1602515223/",
+            "fliff": "https://sports.getfliff.com/markets/271943_c_p_204_prematch"
+        },
+        "league": "nba"
+    },
+    {
+        "id": "bd17831124a6b3b8f286d11a946b738c",
+        "game": {
+            "teams": [
+                "Utah Jazz",
+                "New York Knicks"
+            ],
+            "date": "2025-01-01 17:30:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/utah-jazz-vs-new-york-knicks/1602515222/",
+            "fliff": "https://sports.getfliff.com/markets/271939_c_p_204_prematch"
+        },
+        "league": "nba"
+    },
+    {
+        "id": "9766544b22a648ef61e2cdebafdd7366",
+        "game": {
+            "teams": [
+                "Brooklyn Nets",
+                "Toronto Raptors"
+            ],
+            "date": "2025-01-01 17:30:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/brooklyn-nets-vs-toronto-raptors/1602515221/",
+            "fliff": "https://sports.getfliff.com/markets/271947_c_p_204_prematch"
+        },
+        "league": "nba"
+    },
+    {
+        "id": "ff9eb5fdfcb14fa1bd73e3618e57800a",
+        "game": {
+            "teams": [
+                "Dallas Mavericks",
+                "Houston Rockets"
+            ],
+            "date": "2025-01-01 18:00:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/dallas-mavericks-vs-houston-rockets/1602514964/",
+            "fliff": "https://sports.getfliff.com/markets/271948_c_p_204_prematch"
+        },
+        "league": "nba"
+    },
+    {
+        "id": "864b24062bba955e0c692a7d6ff31745",
+        "game": {
+            "teams": [
+                "Atlanta Hawks",
+                "Denver Nuggets"
+            ],
+            "date": "2025-01-01 19:00:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/atlanta-hawks-vs-denver-nuggets/1602522349/",
+            "fliff": "https://sports.getfliff.com/markets/271843_c_p_204_prematch"
+        },
+        "league": "nba"
+    },
+    {
+        "id": "603722dcb0921f40def02bdc6c61176b",
+        "game": {
+            "teams": [
+                "Philadelphia 76ers",
+                "Sacramento Kings"
+            ],
+            "date": "2025-01-01 20:00:00"
+        },
+        "links": {
+            "pinnacle": "https://www.pinnacle.com/en/basketball/nba/philadelphia-76ers-vs-sacramento-kings/1602522004/",
+            "fliff": "https://sports.getfliff.com/markets/271949_c_p_204_prematch"
+        },
+        "league": "nba"
+    }
+]
