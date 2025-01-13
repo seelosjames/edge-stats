@@ -46,7 +46,7 @@ def pinnacle_parse_prop_string(input_string):
     return {"message": "Format not yet supported"}
 
 
-def get_pinnacle_games(url, data, sport):
+def get_pinnacle_games(url, sport):
     # Configure Chrome options
     chrome_options = Options()
     chrome_options.add_argument("--disable-gpu")
@@ -60,6 +60,7 @@ def get_pinnacle_games(url, data, sport):
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     sports_book_name = "pinnacle"
+    data = []
 
     try:
         driver.get(url)
@@ -104,16 +105,14 @@ def get_pinnacle_games(url, data, sport):
                 .text
             )
 
-            # Parse datetime
+            # Parse datetime for date
             date_time_obj = datetime.strptime(date_time_str, "%A, %B %d, %Y at %H:%M")
-            if sport == "nba":
-                date_time_obj = date_time_obj - timedelta(minutes=10)
-            elif sport == "nhl":
-                date_time_obj = date_time_obj - timedelta(minutes=7)
 
-            game_id = generate_id(
-                team_1, team_2, date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
-            )
+            # Parse datetime for id
+            date_str = date_time_str.split(" at")[0]
+            date_obj = datetime.strptime(date_str, "%A, %B %d, %Y")
+
+            game_id = generate_id(team_1, team_2, date_obj.strftime("%Y-%m-%d"))
 
             # Create new game object
             new_game = {
@@ -123,8 +122,9 @@ def get_pinnacle_games(url, data, sport):
                 "league": sport,
             }
 
-            # Update or add the game
-            update_or_add_game(data, new_game, sports_book_name)
+            data.append(new_game)
+
+        return data
 
     except Exception as e:
         print(f"Error while processing link {url}: {e}")

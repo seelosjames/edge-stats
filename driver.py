@@ -3,6 +3,9 @@ from scraping.pinnacle import *
 import uuid
 import hashlib
 import logging
+import os
+
+
 
 sports_links = {
     "nba": {
@@ -48,25 +51,15 @@ sports_links = {
 }
 
 
-# Function to generate a UUID from game data
-def generate_game_uuid(league, home_team, away_team, game_date):
-    unique_str = f"{league}-{home_team}-{away_team}-{game_date}"
-    return hashlib.md5(unique_str.encode()).hexdigest()
-
-
 # Function to save a single game and its links
 def save_game_to_db(conn, game, league, sportsbook_id, url):
-    # Generate game UUID
-    game_uuid = generate_game_uuid(
-        league, game["home_team"], game["away_team"], game["game_date"]
-    )
 
     # Insert game into the database
     game_data = (
-        game_uuid,
+        "game_uuid",
         league,
-        game["home_team"],
-        game["away_team"],
+        game["team1"],
+        game["team2"],
         game["game_date"],
     )
     game_id = insert_game(conn, game_data)
@@ -79,32 +72,26 @@ def save_game_to_db(conn, game, league, sportsbook_id, url):
 
 # Function to process and save all games
 def save_games_to_db(sports):
-    for sport in sports:
-        # Scrape data for each sport
-        games = get_pinnacle_games(
-            sports_links[sport]["pinnacle"], [], sport
-        )  # Replace [] with the correct list
-        print(games)
-        # for game in games:
-        #     print(game)
-    # conn = get_db_connection()
-    # try:
-    #     with conn:
-    #         for sport in sports:
-    #             # Scrape data for each sport
-    #             games = get_pinnacle_games(
-    #                 sports_links[sport]["pinnacle"], [], sport
-    #             )  # Replace [] with the correct list
-    #             for game in games:
-    #                 save_game_to_db(
-    #                     conn, game, sport, 1, sports_links[sport]["pinnacle"]
-    #                 )  # Assuming sportsbook_id=1 for now
-    # except Exception as e:
-    #     logging.error(f"Error saving games to DB: {e}")
-    # finally:
-    #     conn.close()
+    conn = get_db_connection()
+    try:
+        with conn:
+            for sport in sports:
+                # Scrape data for each sport
+                games = get_pinnacle_games(
+                    sports_links[sport]["pinnacle"], sport
+                )  # Replace [] with the correct list
+                for game in games:
+                    print(game)
+                    # save_game_to_db(
+                    #     conn, game, sport, 1, sports_links[sport]["pinnacle"]
+                    # )  # Assuming sportsbook_id=1 for now
+    except Exception as e:
+        logging.error(f"Error saving games to DB: {e}")
+    finally:
+        conn.close()
 
 
 # Example usage
 if __name__ == "__main__":
+    
     save_games_to_db(["nba"])
