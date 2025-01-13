@@ -5,10 +5,11 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from functions.betting import *
 from datetime import datetime, timedelta
 import time
-from helper import *
+
+from .helper import *
+from ..betting.betting import *
 
 def fliff_parse_datetime(input_str):
     now = datetime.now()

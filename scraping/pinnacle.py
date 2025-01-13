@@ -5,12 +5,12 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-from functions.betting import *
 from datetime import datetime, timedelta
 import time
 import re
 
-from helper import *
+from .helper import *
+from betting.betting import *
 
 
 # XPaths for Pinnacle elements
