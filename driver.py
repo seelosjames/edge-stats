@@ -6,11 +6,10 @@ import logging
 import os
 
 
-
 sports_links = {
-    "nba": {
-        "pinnacle": "https://www.pinnacle.com/en/basketball/nba/matchups/#all",
-        "fliff": "https://sports.getfliff.com/channels?channelId=461",
+    "NBA": {
+        "Pinnacle": "https://www.pinnacle.com/en/basketball/nba/matchups/#all",
+        "Fliff": "https://sports.getfliff.com/channels?channelId=461",
     },
     "nhl": {
         "pinnacle": "https://www.pinnacle.com/en/hockey/nhl/matchups/#period:0",
@@ -50,26 +49,6 @@ sports_links = {
     },
 }
 
-
-# Function to save a single game and its links
-def save_game_to_db(conn, game, league, sportsbook_id, url):
-
-    # Insert game into the database
-    game_data = (
-        "game_uuid",
-        league,
-        game["team1"],
-        game["team2"],
-        game["game_date"],
-    )
-    game_id = insert_game(conn, game_data)
-
-    # Insert game link into the database
-    if game_id:
-        link_data = (game_id, url, sportsbook_id)
-        insert_game_link(conn, link_data)
-
-
 # Function to process and save all games
 def save_games_to_db(sports):
     conn = get_db_connection()
@@ -78,13 +57,12 @@ def save_games_to_db(sports):
             for sport in sports:
                 # Scrape data for each sport
                 games = get_pinnacle_games(
-                    sports_links[sport]["pinnacle"], sport
-                )  # Replace [] with the correct list
+                    sports_links[sport]["Pinnacle"], sport
+                )
                 for game in games:
-                    print(game)
-                    # save_game_to_db(
-                    #     conn, game, sport, 1, sports_links[sport]["pinnacle"]
-                    # )  # Assuming sportsbook_id=1 for now
+                    insert_game(conn, game[0])
+                    insert_game_url(conn, game[1])
+
     except Exception as e:
         logging.error(f"Error saving games to DB: {e}")
     finally:
@@ -93,5 +71,4 @@ def save_games_to_db(sports):
 
 # Example usage
 if __name__ == "__main__":
-    
-    save_games_to_db(["nba"])
+    save_games_to_db(["NBA"])

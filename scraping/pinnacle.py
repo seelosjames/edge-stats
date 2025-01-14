@@ -22,6 +22,8 @@ XPATH_TEAM_2 = (
     '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label'
 )
 
+SPORTSBOOK_NAME = "Pinnacle"
+
 
 def pinnacle_parse_prop_string(input_string):
     """
@@ -46,7 +48,7 @@ def pinnacle_parse_prop_string(input_string):
     return {"message": "Format not yet supported"}
 
 
-def get_pinnacle_games(url, sport):
+def get_pinnacle_games(url, league):
     # Configure Chrome options
     chrome_options = Options()
     chrome_options.add_argument("--disable-gpu")
@@ -59,7 +61,6 @@ def get_pinnacle_games(url, sport):
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    sports_book_name = "pinnacle"
     data = []
 
     try:
@@ -112,17 +113,25 @@ def get_pinnacle_games(url, sport):
             date_str = date_time_str.split(" at")[0]
             date_obj = datetime.strptime(date_str, "%A, %B %d, %Y")
 
-            game_id = generate_id(team_1, team_2, date_obj.strftime("%Y-%m-%d"))
+            game_uuid = generate_id(team_1, team_2, date_obj.strftime("%Y-%m-%d"))
 
             # Create new game object
             new_game = {
-                "id": game_id,
+                "id": game_uuid,
                 "game": {"teams": [team_1, team_2], "date": date_time_obj},
-                "links": {sports_book_name: game_url},
-                "league": sport,
+                "links": {SPORTSBOOK_NAME: game_url},
+                "league": league,
             }
 
-            data.append(new_game)
+            # Data to Update/Create Game
+            # (game_uuid, league_id, team_1, team_2, game_date)
+            game_data = (game_uuid, league, team_1, team_2, date_time_obj)
+
+            # Data to Update/Create Game URL
+            # (game_id, sportsbook_id, url)
+            game_url_data = (game_uuid, SPORTSBOOK_NAME, game_url)
+
+            data.append([game_data, game_url_data])
 
         return data
 
@@ -130,6 +139,7 @@ def get_pinnacle_games(url, sport):
         print(f"Error while processing link {url}: {e}")
     finally:
         driver.quit()
+
 
 def get_pinnacle_odds(driver, data, link):
     try:
