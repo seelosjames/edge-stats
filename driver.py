@@ -1,9 +1,7 @@
+import argparse
+import logging
 from database.db import *
 from scraping.pinnacle import *
-import uuid
-import hashlib
-import logging
-import os
 
 
 sports_links = {
@@ -49,8 +47,9 @@ sports_links = {
     },
 }
 
+
 # Function to process and save all games
-def save_games_to_db(sports):
+def get_games(sports):
     conn = get_db_connection()
     try:
         with conn:
@@ -62,13 +61,41 @@ def save_games_to_db(sports):
                 for game in games:
                     insert_game(conn, game[0])
                     insert_game_url(conn, game[1])
-
     except Exception as e:
         logging.error(f"Error saving games to DB: {e}")
     finally:
         conn.close()
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Sports Betting Data Scraper")
+    parser.add_argument("--leagues", type=str, nargs="+", help="Select leagues")
+    parser.add_argument("--books", type=str, nargs="+", help="Select Sportsbooks")
+    parser.add_argument("--get_games", action="store_true", help="Select leagues")
+    parser.add_argument("--get_odds", action="store_true", help="Select leagues")
+    parser.add_argument("--get_value", action="store_true", help="Select leagues")
+    parser.add_argument("--connect_db", action="connect_db", help="Select leagues")
+
+    args = parser.parse_args()
+
+    if args.connect_db:
+        print("Connecting to db and syncing data")
+    elif args.get_games:
+        print("Getting games:")
+        print("Leagues:", args.leagues)
+        print("Books:", args.books)
+    elif args.get_odds:
+        print("Getting odds:")
+        print("Leagues:", args.leagues)
+        print("Books:", args.books)
+    elif args.get_value:
+        print("Getting value:")
+        print("Leagues:", args.leagues)
+        print("Books:", args.books)
+
+    # get_games(["NBA"])
+
+
 # Example usage
 if __name__ == "__main__":
-    save_games_to_db(["NBA"])
+    main()
