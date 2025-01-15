@@ -2,6 +2,7 @@ import argparse
 import logging
 from database.db import *
 from scraping.pinnacle import *
+from scraping.fliff import *
 
 
 sports_links = {
@@ -48,19 +49,45 @@ sports_links = {
 }
 
 
-# Function to process and save all games
-def get_games(sports):
+# Dispatcher to select the appropriate scraper
+scraper_dispatch = {
+    "Pinnacle": get_pinnacle_games,
+    "Fliff": get_fliff_games,  # Implement this for Fliff scraping
+    # Add other sportsbooks here
+}
+
+
+def scrape_games(sportsbook, url, sport):
+    """
+    Dispatches the scraping task to the appropriate function based on the sportsbook.
+    """
+    scraper = scraper_dispatch.get(sportsbook)
+    if scraper:
+        return scraper(url, sport)
+    else:
+        raise ValueError(f"No scraper implemented for sportsbook: {sportsbook}")
+
+
+def get_games(sports, books):
     conn = get_db_connection()
     try:
         with conn:
             for sport in sports:
-                # Scrape data for each sport
-                games = get_pinnacle_games(
-                    sports_links[sport]["Pinnacle"], sport
-                )
-                for game in games:
-                    insert_game(conn, game[0])
-                    insert_game_url(conn, game[1])
+                for book in books:
+                    if sport in sports_links and book in sports_links[sport]:
+                        url = sports_links[sport][book]
+                        try:
+                            # Use the unified scraper
+                            games = scrape_games(book, url, sport)
+                            for game in games:
+                                insert_game(conn, game[0])
+                                insert_game_url(conn, game[1])
+                        except Exception as scrape_error:
+                            logging.error(
+                                f"Error scraping {sport} at {book}: {scrape_error}"
+                            )
+                    else:
+                        logging.warning(f"No link found for {sport} at {book}")
     except Exception as e:
         logging.error(f"Error saving games to DB: {e}")
     finally:
@@ -69,31 +96,53 @@ def get_games(sports):
 
 def main():
     parser = argparse.ArgumentParser(description="Sports Betting Data Scraper")
-    parser.add_argument("--leagues", type=str, nargs="+", help="Select leagues")
-    parser.add_argument("--books", type=str, nargs="+", help="Select Sportsbooks")
-    parser.add_argument("--get_games", action="store_true", help="Select leagues")
-    parser.add_argument("--get_odds", action="store_true", help="Select leagues")
-    parser.add_argument("--get_value", action="store_true", help="Select leagues")
-    parser.add_argument("--connect_db", action="connect_db", help="Select leagues")
+    parser.add_argument(
+        "--leagues", type=str, nargs="+", required=True, help="Select leagues"
+    )
+    parser.add_argument(
+        "--books", type=str, nargs="+", required=True, help="Select sportsbooks"
+    )
+    parser.add_argument(
+        "--get_games",
+        action="store_true",
+        help="Get games for selected leagues and books",
+    )
+    parser.add_argument(
+        "--get_odds",
+        action="store_true",
+        help="Get odds for selected leagues and books",
+    )
+    parser.add_argument(
+        "--get_value",
+        action="store_true",
+        help="Get value bets for selected leagues and books",
+    )
+    parser.add_argument(
+        "--connect_db",
+        action="store_true",
+        help="Connect to the database and sync data",
+    )
 
     args = parser.parse_args()
 
     if args.connect_db:
         print("Connecting to db and syncing data")
+        # Add your DB connection logic here
     elif args.get_games:
         print("Getting games:")
         print("Leagues:", args.leagues)
         print("Books:", args.books)
+        get_games(args.leagues, args.books)  # Pass selected leagues and books
     elif args.get_odds:
         print("Getting odds:")
         print("Leagues:", args.leagues)
         print("Books:", args.books)
+        # Add odds scraping logic here
     elif args.get_value:
         print("Getting value:")
         print("Leagues:", args.leagues)
         print("Books:", args.books)
-
-    # get_games(["NBA"])
+        # Add value bet logic here
 
 
 # Example usage
