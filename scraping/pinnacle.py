@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import time
 import re
 
-from .helper import *
+from scraping.helper import *
 from betting.betting import *
 
 
@@ -114,14 +114,7 @@ def get_pinnacle_games(url, league):
             date_obj = datetime.strptime(date_str, "%A, %B %d, %Y")
 
             game_uuid = generate_id(team_1, team_2, date_obj.strftime("%Y-%m-%d"))
-
-            # Create new game object
-            new_game = {
-                "id": game_uuid,
-                "game": {"teams": [team_1, team_2], "date": date_time_obj},
-                "links": {SPORTSBOOK_NAME: game_url},
-                "league": league,
-            }
+            
 
             # Data to Update/Create Game
             # (game_uuid, league_id, team_1, team_2, game_date)

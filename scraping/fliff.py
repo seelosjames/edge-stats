@@ -9,7 +9,11 @@ from datetime import datetime, timedelta
 import time
 
 from .helper import *
-from ..betting.betting import *
+from betting.betting import *
+
+
+SPORTSBOOK_NAME = "Fliff"
+
 
 def fliff_parse_datetime(input_str):
     now = datetime.now()
@@ -35,7 +39,7 @@ def fliff_parse_datetime(input_str):
     raise ValueError(f"Unsupported date string format: {input_str}")
 
 
-def get_fliff_games(url, data, sport):
+def get_fliff_games(url, league):
     # Configure Chrome options
     mobile_emulation = {"deviceName": "iPhone 12 Pro"}
     chrome_options = webdriver.ChromeOptions()
@@ -44,7 +48,7 @@ def get_fliff_games(url, data, sport):
     # Initialize the WebDriver
     driver = webdriver.Chrome(options=chrome_options)
 
-    sports_book_name = "fliff"
+    data = []
 
     try:
         driver.get(url)
@@ -78,15 +82,15 @@ def get_fliff_games(url, data, sport):
                 team_1 = game.find_element(By.XPATH, "div[2]/div[2]/div[1]/span").text
                 team_2 = game.find_element(By.XPATH, "div[2]/div[3]/div[1]/span").text
 
-                game_id = generate_id(
+                game_uuid = generate_id(
                     team_1, team_2, date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
                 )
 
                 # Create new game object
                 new_game = {
-                    "id": game_id,
+                    "id": game_uuid,
                     "game": {"teams": [team_1, team_2], "date": date_time_obj},
-                    "league": sport,
+                    "league": league,
                 }
 
                 new_game_data["data"] = new_game
@@ -130,16 +134,26 @@ def get_fliff_games(url, data, sport):
                     (By.XPATH, '//*[@id="root"]/div[1]')
                 )
             )
-            new_game["links"] = {sports_book_name: driver.current_url}
 
-            # Update or add the game
-            update_or_add_game(data, new_game, sports_book_name)
+            game_url = driver.current_url
+            
 
-        driver.quit()
+            # Data to Update/Create Game
+            # (game_uuid, league_id, team_1, team_2, game_date)
+            game_data = (game_uuid, league, team_1, team_2, date_time_obj)
+
+            # Data to Update/Create Game URL
+            # (game_id, sportsbook_id, url)
+            game_url_data = (game_uuid, SPORTSBOOK_NAME, game_url)
+
+            data.append([game_data, game_url_data])
+
+        return data
 
     except Exception as e:
         print("An error occurred while fetching matchups:", e)
-
+    finally:
+        driver.quit()
 
 def get_fliff_odds(data):
 

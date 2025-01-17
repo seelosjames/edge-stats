@@ -80,8 +80,16 @@ def get_games(sports, books):
                             # Use the unified scraper
                             games = scrape_games(book, url, sport)
                             for game in games:
-                                insert_game(conn, game[0])
-                                insert_game_url(conn, game[1])
+
+                                print(game)
+                                # team_1_data = (game[0][2], sport)
+                                # team_2_data = (game[0][3], sport)
+
+                                # insert_team(conn, team_1_data)
+                                # insert_team(conn, team_2_data)
+
+                                # insert_game(conn, game[0])
+                                # insert_game_url(conn, game[1])
                         except Exception as scrape_error:
                             logging.error(
                                 f"Error scraping {sport} at {book}: {scrape_error}"
