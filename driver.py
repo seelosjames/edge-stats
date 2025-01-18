@@ -6,9 +6,9 @@ from scraping.fliff import *
 
 
 sports_links = {
-    "NBA": {
-        "Pinnacle": "https://www.pinnacle.com/en/basketball/nba/matchups/#all",
-        "Fliff": "https://sports.getfliff.com/channels?channelId=461",
+    "nba": {
+        "pinnacle": "https://www.pinnacle.com/en/basketball/nba/matchups/#all",
+        "fliff": "https://sports.getfliff.com/channels?channelId=461",
     },
     "nhl": {
         "pinnacle": "https://www.pinnacle.com/en/hockey/nhl/matchups/#period:0",
@@ -51,8 +51,8 @@ sports_links = {
 
 # Dispatcher to select the appropriate scraper
 scraper_dispatch = {
-    "Pinnacle": get_pinnacle_games,
-    "Fliff": get_fliff_games,  # Implement this for Fliff scraping
+    "pinnacle": get_pinnacle_games,
+    "fliff": get_fliff_games,  # Implement this for Fliff scraping
     # Add other sportsbooks here
 }
 
@@ -80,16 +80,14 @@ def get_games(sports, books):
                             # Use the unified scraper
                             games = scrape_games(book, url, sport)
                             for game in games:
+                                team_1_data = (game[0][2], sport)
+                                team_2_data = (game[0][3], sport)
 
-                                print(game)
-                                # team_1_data = (game[0][2], sport)
-                                # team_2_data = (game[0][3], sport)
+                                insert_team(conn, team_1_data)
+                                insert_team(conn, team_2_data)
 
-                                # insert_team(conn, team_1_data)
-                                # insert_team(conn, team_2_data)
-
-                                # insert_game(conn, game[0])
-                                # insert_game_url(conn, game[1])
+                                insert_game(conn, game[0])
+                                insert_game_url(conn, game[1])
                         except Exception as scrape_error:
                             logging.error(
                                 f"Error scraping {sport} at {book}: {scrape_error}"

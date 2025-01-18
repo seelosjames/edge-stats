@@ -1,5 +1,46 @@
 import hashlib
 
+team_name_mapping = {
+    "Atlanta Hawks": [],
+    "Boston Celtics": [],
+    "Brooklyn Nets": [],
+    "Charlotte Hornets": [],
+    "Chicago Bulls": [],
+    "Cleveland Cavaliers": [],
+    "Dallas Mavericks": [],
+    "Denver Nuggets": [],
+    "Detroit Pistons": [],
+    "Golden State Warriors": [""],
+    "Houston Rockets": [],
+    "Indiana Pacers": [],
+    "Los Angeles Clippers": [''],
+    "Los Angeles Lakers": ["L.A. Lakers"],
+    "Memphis Grizzlies": [],
+    "Miami Heat": [],
+    "Milwaukee Bucks": [],
+    "Minnesota Timberwolves": [],
+    "New Orleans Pelicans": [''],
+    "New York Knicks": [""],
+    "Oklahoma City Thunder": [],
+    "Orlando Magic": [],
+    "Philadelphia 76ers": [],
+    "Phoenix Suns": [],
+    "Portland Trail Blazers": [],
+    "Sacramento Kings": [],
+    "San Antonio Spurs": [""],
+    "Toronto Raptors": [],
+    "Utah Jazz": [],
+    "Washington Wizards": [],
+}
+
+
+def normalize_team_name(name):
+    for standard_name, aliases in team_name_mapping.items():
+        if name in aliases:
+            return standard_name
+    return name  # Return original name if no match is found
+
+
 # Function to update or append game data
 def update_or_add_game(data, new_game, book):
     new_game_link = new_game["links"][book]

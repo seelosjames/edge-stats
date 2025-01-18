@@ -8,11 +8,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 from datetime import datetime, timedelta
 import time
 
-from .helper import *
+from scraping.helper import *
 from betting.betting import *
 
 
-SPORTSBOOK_NAME = "Fliff"
+SPORTSBOOK_NAME = "fliff"
 
 
 def fliff_parse_datetime(input_str):
@@ -68,7 +68,6 @@ def get_fliff_games(url, league):
 
             if not live:
                 new_game_data = {}
-
                 new_game_data["index"] = i
 
                 date = game.find_element(
@@ -79,27 +78,27 @@ def get_fliff_games(url, league):
                 ).text
                 date_time_obj = fliff_parse_datetime(date + " " + times)
 
-                team_1 = game.find_element(By.XPATH, "div[2]/div[2]/div[1]/span").text
-                team_2 = game.find_element(By.XPATH, "div[2]/div[3]/div[1]/span").text
-
-                game_uuid = generate_id(
-                    team_1, team_2, date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
+                team_1 = normalize_team_name(
+                    game.find_element(By.XPATH, "div[2]/div[2]/div[1]/span").text
+                )
+                team_2 = normalize_team_name(
+                    game.find_element(By.XPATH, "div[2]/div[3]/div[1]/span").text
                 )
 
-                # Create new game object
-                new_game = {
-                    "id": game_uuid,
-                    "game": {"teams": [team_1, team_2], "date": date_time_obj},
-                    "league": league,
-                }
+                game_uuid = generate_id(
+                    team_1, team_2, date_time_obj.strftime("%Y-%m-%d")
+                )
 
-                new_game_data["data"] = new_game
+                # (game_uuid, league_id, team_1, team_2, game_date)
+                game_data = (game_uuid, league, team_1, team_2, date_time_obj)
+
+                new_game_data["game_data"] = game_data
 
                 not_live.append(new_game_data)
 
         for game in not_live:
             i = game["index"]
-            new_game = game["data"]
+            new_game = game["game_data"]
 
             driver.get(url)
 
@@ -136,15 +135,14 @@ def get_fliff_games(url, league):
             )
 
             game_url = driver.current_url
-            
 
             # Data to Update/Create Game
             # (game_uuid, league_id, team_1, team_2, game_date)
-            game_data = (game_uuid, league, team_1, team_2, date_time_obj)
+            game_data = new_game
 
             # Data to Update/Create Game URL
             # (game_id, sportsbook_id, url)
-            game_url_data = (game_uuid, SPORTSBOOK_NAME, game_url)
+            game_url_data = (game_data[0], SPORTSBOOK_NAME, game_url)
 
             data.append([game_data, game_url_data])
 
@@ -154,6 +152,7 @@ def get_fliff_games(url, league):
         print("An error occurred while fetching matchups:", e)
     finally:
         driver.quit()
+
 
 def get_fliff_odds(data):
 

@@ -22,7 +22,7 @@ XPATH_TEAM_2 = (
     '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label'
 )
 
-SPORTSBOOK_NAME = "Pinnacle"
+SPORTSBOOK_NAME = "pinnacle"
 
 
 def pinnacle_parse_prop_string(input_string):
@@ -94,13 +94,13 @@ def get_pinnacle_games(url, league):
                 .text
             )
 
-            team_1 = (
+            team_1 = normalize_team_name(
                 WebDriverWait(driver, 10)
                 .until(EC.presence_of_element_located((By.XPATH, XPATH_TEAM_1)))
                 .text
             )
 
-            team_2 = (
+            team_2 = normalize_team_name(
                 WebDriverWait(driver, 10)
                 .until(EC.presence_of_element_located((By.XPATH, XPATH_TEAM_2)))
                 .text
@@ -114,7 +114,6 @@ def get_pinnacle_games(url, league):
             date_obj = datetime.strptime(date_str, "%A, %B %d, %Y")
 
             game_uuid = generate_id(team_1, team_2, date_obj.strftime("%Y-%m-%d"))
-            
 
             # Data to Update/Create Game
             # (game_uuid, league_id, team_1, team_2, game_date)

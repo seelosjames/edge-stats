@@ -18,7 +18,7 @@ def insert_game(conn, game_data):
     INSERT INTO game (game_uuid, league_id, team_1, team_2, game_date)
     VALUES (
         %s,
-        (SELECT league_id FROM league WHERE abbreviation = %s),
+        (SELECT league_id FROM league WHERE league_name = %s),
         (SELECT team_id FROM team WHERE team_name = %s),
         (SELECT team_id FROM team WHERE team_name = %s),
         %s
@@ -58,7 +58,7 @@ def insert_team(conn, team_data):
     INSERT INTO team (team_name, league_id)
     VALUES (
         %s,
-        (SELECT league_id FROM league WHERE abbreviation = %s)
+        (SELECT league_id FROM league WHERE league_name = %s)
     )
     ON CONFLICT DO NOTHING;
     """
