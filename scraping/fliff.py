@@ -85,7 +85,7 @@ def get_fliff_games(url, league):
                     game.find_element(By.XPATH, "div[2]/div[3]/div[1]/span").text
                 )
 
-                game_uuid = generate_id(
+                game_uuid = generate_game_uuid(
                     team_1, team_2, date_time_obj.strftime("%Y-%m-%d")
                 )
 

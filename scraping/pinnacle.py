@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -8,6 +9,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime, timedelta
 import time
 import re
+
 
 from scraping.helper import *
 from betting.betting import *
@@ -25,24 +27,51 @@ XPATH_TEAM_2 = (
 SPORTSBOOK_NAME = "pinnacle"
 
 
+import re
+
+
+def pinnacle_parse_line_info(line_divs, prop_uuid, team_1=None, team_2=None):
+    results = []
+    for i, line_div in enumerate(line_divs):
+        line_info = line_div.find_elements(By.XPATH, "button/span")
+        description = line_info[0].text
+        odd = line_info[1].text
+        if team_1 or team_2:
+            if i % 2 == 0:
+                description = f"{team_1} {description}" if team_1 else description
+            else:
+                description = f"{team_2} {description}" if team_2 else description
+        results.append({"description": description, "odd": odd, 'line_uuid': generate_line_uuid(prop_uuid, description, odd)})
+    return results
+
+
 def pinnacle_parse_prop_string(input_string):
     """
     Parses the input string based on its format and returns relevant information.
 
-    For strings in the format `Player (Prop)`, it returns:
-        - player: The part before the parentheses
-        - prop: The part inside the parentheses
-        - prop_type: A fixed string "player_prop"
+    Supported formats:
+    1. "Player (Prop)" - Returns player, prop, and prop_type as "player_prop".
+    2. "Prop Name - Prop Type" - Returns prop_name and prop_type.
 
-    Other formats will be handled in the future.
+    For unsupported formats, returns a message indicating the format is not supported.
     """
-    # Check for the format with parentheses
+
+    # Check for the format with parentheses (Player (Prop))
     match = re.match(r"^(.*?)\s*\((.*?)\)$", input_string)
     if match:
         player = match.group(1).strip()
         prop = match.group(2).strip()
-        prop_type = "player_prop"
-        return {"player": player, "prop": prop, "prop_type": prop_type}
+        return {
+            "prop_name": player + " " + prop,
+            "prop_type": "player_prop",
+        }
+
+    # Check for the format with a dash (Prop Name - Prop Type)
+    match = re.match(r"^(.*?)\s*[-–]\s*(.*?)$", input_string)
+    if match:
+        prop_name = match.group(1).strip()
+        prop_type = match.group(2).strip()
+        return {"prop_name": normalize_prop_name(prop_name), "prop_type": prop_type}
 
     # Placeholder for other formats
     return {"message": "Format not yet supported"}
@@ -113,7 +142,9 @@ def get_pinnacle_games(url, league):
             date_str = date_time_str.split(" at")[0]
             date_obj = datetime.strptime(date_str, "%A, %B %d, %Y")
 
-            game_uuid = generate_id(team_1, team_2, date_obj.strftime("%Y-%m-%d"))
+            game_uuid = generate_game_uuid(
+                team_1, team_2, date_obj.strftime("%Y-%m-%d")
+            )
 
             # Data to Update/Create Game
             # (game_uuid, league_id, team_1, team_2, game_date)
@@ -133,10 +164,34 @@ def get_pinnacle_games(url, league):
         driver.quit()
 
 
-def get_pinnacle_odds(driver, data, link):
+def get_pinnacle_odds(url_list):
+
+    # url_list: (game_id, game_url, league_name)
+
+    # Configure Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--window-size=1920,1080")
+
+    # Initialize the WebDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    for url in url_list:
+        get_pinnacle_nba_odds(driver, url)
+
+
+def get_pinnacle_nba_odds(driver, url_data):
+    game_id = url_data[0]
+    url = url_data[1]
+    league_name = url_data[2]
+    data = []
+
     try:
-        driver.get(link)
-        time.sleep(4)
+        driver.get(url)
 
         # Wait for content to load
         show_all_button = WebDriverWait(driver, 10).until(
@@ -162,80 +217,37 @@ def get_pinnacle_odds(driver, data, link):
         for prop_category in prop_category_divs:
             prop_divs = prop_category.find_elements(By.XPATH, "div")
             for prop_div in prop_divs:
-                # //*[@id="root"]/div[1]/div[2]/main/div[3]/div[1]/div[1]/div[1]/span[1]
-                title = prop_div.find_element(By.XPATH, "div[1]/span[1]").text
+                title = pinnacle_parse_prop_string(
+                    prop_div.find_element(By.XPATH, "div[1]/span[1]").text
+                )
+                prop_name = title["prop_name"]
+                prop_type = title["prop_type"]
+                prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
 
-            # //*[@id="root"]/div[1]/div[2]/main/div[3]/div[1]/div[1]
+                try:
+                    button = prop_div.find_element(By.XPATH, "div[2]/button")
+                    button.click()
+                except NoSuchElementException:
+                    print(f"No 'More lines' button found for {prop_name}.")
+                # //*[@id="root"]/div[1]/div[2]/main/div[3]/div[1]/div[2]/div[2]/ul/li[1]
+                try:
+                    team_1 = prop_div.find_element(
+                        By.XPATH, "div[2]/ul/li[1]"
+                    ).text
+                    team_2 = prop_div.find_element(
+                        By.XPATH, "div[2]/ul/li[2]"
+                    ).text
+                except NoSuchElementException:
+                    team_1, team_2 = None, None
+                    print(
+                        f"Teams not found for {prop_name}, proceeding without team names."
+                    )
 
-        # Get the matchup to use as the data key
-        away_team = driver.find_element(
-            By.XPATH,
-            '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[3]/div[2]/div/label',
-        ).text
-        home_team = driver.find_element(
-            By.XPATH,
-            '//*[@id="root"]/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label',
-        ).text
-        game = f"{away_team} vs {home_team}"  # Key for data dict
-
-        # Get player prop div # and number of player props available
-        lenth = len(
-            driver.find_elements(
-                By.XPATH, '//*[@id="root"]/div[1]/div[2]/main/div[3]/div'
-            )
-        )
-        player_props = f'//*[@id="root"]/div[1]/div[2]/main/div[3]/div[{str(lenth)}]'
-        num_props = len(driver.find_elements(By.XPATH, f"{player_props}/div"))
-
-        # Initialize Game Data
-        game_data = {}
-
-        # Loop through player props
-        for i in range(1, num_props + 1):
-            # Get and format Prop info
-            info = driver.find_element(
-                By.XPATH, f"{player_props}/div[{str(i)}]/div[1]/span[1]"
-            ).text
-            name = info.split("(")[0].strip()
-            item = info.split("(")[1].rstrip(")")
-            over_number = re.search(
-                r"\d+(\.\d+)?",
-                driver.find_element(
-                    By.XPATH,
-                    f"{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[1]",
-                ).text,
-            ).group()
-            over_odds = driver.find_element(
-                By.XPATH,
-                f"{player_props}/div[{str(i)}]/div[2]/div/div/div[1]/button/span[2]",
-            ).text
-            under_number = re.search(
-                r"\d+(\.\d+)?",
-                driver.find_element(
-                    By.XPATH,
-                    f"{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[1]",
-                ).text,
-            ).group()
-            under_odds = driver.find_element(
-                By.XPATH,
-                f"{player_props}/div[{str(i)}]/div[2]/div/div/div[2]/button/span[2]",
-            ).text
-
-            # Initialize player and prop type
-            player = f"{name} {item}"
-
-            # Save info to game_data
-            game_data[player] = {
-                "Pinnacle": {
-                    "over_number": float(over_number),
-                    "over_odds": decimal_to_american(float(over_odds)),
-                    "under_number": float(under_number),
-                    "under_odds": decimal_to_american(float(under_odds)),
-                    "link": link,
-                }
-            }
-
-        data[game] = game_data
-        return data
+                line_divs = prop_div.find_elements(
+                    By.CLASS_NAME, "button-wrapper-Z7pE7Fol_T"
+                )
+                results = pinnacle_parse_line_info(line_divs, prop_uuid, team_1, team_2)
+                print(f"Parsed {len(results)} lines for {prop_name}: {results}")
+                print()
     except Exception as e:
         print("An error occurred while fetching matchups:", e)

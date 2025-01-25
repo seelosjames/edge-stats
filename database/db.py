@@ -13,9 +13,30 @@ def get_db_connection():
     )
 
 
+def get_game_url_by_sb_and_game(conn, data):
+    query = """
+    SELECT gu.game_id, gu.game_url, sb.sportsbook_name
+    FROM game_url gu
+    JOIN sportsbook sb ON gu.sportsbook_id = sb.sportsbook_id
+    JOIN game g ON gu.game_id = g.game_id
+    JOIN league l ON g.league_id = l.league_id
+    WHERE sb.sportsbook_name = %s
+    AND g.game_datetime > %s
+    AND l.league_name = %s;
+    """
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(query, data)
+            results = cursor.fetchall()
+        return results
+    except Exception as e:
+        print(f"Error fetching game URLs: {e}")
+        return None
+
+
 def insert_game(conn, game_data):
     query = """
-    INSERT INTO game (game_uuid, league_id, team_1, team_2, game_date)
+    INSERT INTO game (game_uuid, league_id, team_1, team_2, game_datetime)
     VALUES (
         %s,
         (SELECT league_id FROM league WHERE league_name = %s),
@@ -36,7 +57,7 @@ def insert_game(conn, game_data):
 
 def insert_game_url(conn, game_url_data):
     query = """
-    INSERT INTO game_url (game_id, sportsbook_id, url)
+    INSERT INTO game_url (game_id, sportsbook_id, game_url)
     VALUES (
         (SELECT game_id FROM game WHERE game_uuid = %s),
         (SELECT sportsbook_id FROM sportsbook WHERE sportsbook_name = %s),
