@@ -18,7 +18,7 @@ def decimal_to_american(decimal_odds):
 
 def decimal_to_percentage(decimal_odds):
     if decimal_odds > 1:
-        return 100 / decimal_odds
+        return round((100 / decimal_odds), 4)
     else:
         raise ValueError("Decimal odds must be greater than 1.")
 

@@ -37,8 +37,9 @@ CREATE TABLE LINE (
     line_id SERIAL PRIMARY KEY,
     line_uuid UUID NOT NULL UNIQUE,
     prop_id INT NOT NULL REFERENCES PROP(prop_id) ON DELETE CASCADE,
+    sportsbook_id INT NOT NULL REFERENCES SPORTSBOOK(sportsbook_id) ON DELETE CASCADE,
     description VARCHAR(255),
-    odd DECIMAL(4,4) NOT NULL
+    odd DECIMAL(8,4) NOT NULL
 );
 
 -- SPORTSBOOK Table

@@ -1,5 +1,6 @@
 import argparse
 import logging
+import json
 from collections import defaultdict
 from database.db import *
 from scraping.pinnacle import *
@@ -49,6 +50,47 @@ league_urls = {
     },
 }
 
+def save_to_json(data, filename="output.json"):
+    """Save data to a JSON file."""
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+        print(f"Data saved to {filename}")
+    except Exception as e:
+        print(f"Error saving JSON file: {e}")
+        
+def find_value_bets(data):
+    value_bets = []
+
+    for item in data:
+        sportsbook_1_odd = None
+        sportsbook_2_odd = None
+
+        # Loop through the lines to find the odds for sportsbook_id 1 and 2
+        for line in item['lines']:
+            if line['sportsbook_id'] == 1:
+                sportsbook_1_odd = line['odd']
+            elif line['sportsbook_id'] == 2:
+                sportsbook_2_odd = line['odd']
+
+        # Check if both sportsbook odds were found and the value condition is met
+        if sportsbook_1_odd and sportsbook_2_odd:
+            if sportsbook_1_odd - sportsbook_2_odd >= 3:
+                value_bets.append({
+                    "game_datetime": item['game_datetime'],
+                    "team_1_name": item['team_1_name'],
+                    "team_2_name": item['team_2_name'],
+                    "prop_name": item['prop_name'],
+                    "prop_type": item['prop_type'],
+                    "sportsbook_1_odd": sportsbook_1_odd,
+                    "sportsbook_2_odd": sportsbook_2_odd,
+                    "value_difference": sportsbook_1_odd - sportsbook_2_odd,
+                    "sportsbook_1_id": 1,
+                    "sportsbook_2_id": 2,
+                    "description": item['description'],
+                })
+
+    return value_bets
 
 # Dispatcher to select the appropriate scraper
 get_games_dispatch = {
@@ -65,72 +107,41 @@ get_odds_dispatch = {
 }
 
 
-def scrape_games(sportsbook, url, sport):
+def scrape_games(conn, url, sportsbook, league):
     """
     Dispatches the scraping task to the appropriate function based on the sportsbook.
     """
     scraper = get_games_dispatch.get(sportsbook)
     if scraper:
-        return scraper(url, sport)
+        return scraper(conn, url, sportsbook, league)
     else:
         raise ValueError(f"No scraper implemented for sportsbook: {sportsbook}")
 
 
-def scrape_odds(sportsbook, sport):
+def scrape_odds(conn, urls, sportsbook, league):
     """
     Dispatches the scraping task to the appropriate function based on the sportsbook.
     """
     scraper = get_odds_dispatch.get(sportsbook)
     if scraper:
-        return scraper(sport)
+        return scraper(conn, urls, sportsbook, league)
     else:
         raise ValueError(f"No scraper implemented for sportsbook: {sportsbook}")
 
 
-def get_odds(leagues, books):
+def get_odds(leagues, sportsbooks):
     conn = get_db_connection()
     try:
         with conn:
-            # Dictionary to group URLs by sportsbook
-            sportsbook_urls = defaultdict(list)
-
-            # Collect URLs grouped by sportsbook
             for league in leagues:
-                for book in books:
-                    if league in league_urls and book in league_urls[league]:
+                for sportsbook in sportsbooks:
+                    if league in league_urls and sportsbook in league_urls[league]:
                         current_datetime = datetime.now()
-                        data = (
-                            book,
-                            current_datetime,
-                            league,
-                        )  # (sportsbook, datetime, league)
-                        urls = get_game_url_by_sb_and_game(conn, data)
-
-                        for game_id, game_url, sportsbook_name in urls:
-                            sportsbook_urls[sportsbook_name].append(
-                                (game_id, game_url, league)
-                            )
+                        urls = get_game_url_by_sb_and_game(conn, (sportsbook, current_datetime, league))
+                        
+                        scrape_odds(conn, urls, sportsbook, league)
                     else:
-                        logging.warning(f"No link found for {league} at {book}")
-
-            # Process each sportsbook one at a time
-            for sportsbook, url_list in sportsbook_urls.items():
-                logging.info(f"Processing odds for sportsbook: {sportsbook}")
-                scraper = get_odds_dispatch.get(sportsbook)
-                if scraper:
-                    try:
-                        pass
-                        scraper(
-                            url_list
-                        )  # Scrape odds using the specific sportsbook scraper
-                    except Exception as e:
-                        logging.error(
-                            f"Error scraping odds at {sportsbook}: {e}"
-                        )
-                else:
-                    logging.warning(
-                        f"No scraper implemented for sportsbook: {sportsbook}"
-                    )
+                        logging.warning(f"No link found for {league} at {sportsbook}")
 
     except Exception as e:
         logging.error(f"Error processing odds: {e}")
@@ -138,37 +149,55 @@ def get_odds(leagues, books):
         conn.close()
 
 
-def get_games(leagues, books):
+def get_games(leagues, sportsbooks):
     conn = get_db_connection()
     try:
         with conn:
             for league in leagues:
-                for book in books:
-                    if league in league_urls and book in league_urls[league]:
-                        url = league_urls[league][book]
+                for sportsbook in sportsbooks:
+                    if league in league_urls and sportsbook in league_urls[league]:
+                        url = league_urls[league][sportsbook]
                         try:
-                            # Use the unified scraper
-                            games = scrape_games(book, url, league)
-                            for game in games:
-                                team_1_data = (game[0][2], league)
-                                team_2_data = (game[0][3], league)
-
-                                insert_team(conn, team_1_data)
-                                insert_team(conn, team_2_data)
-
-                                insert_game(conn, game[0])
-                                insert_game_url(conn, game[1])
+                            scrape_games(conn, url, sportsbook, league)
                         except Exception as scrape_error:
                             logging.error(
-                                f"Error scraping {league} at {book}: {scrape_error}"
+                                f"Error scraping {league} at {sportsbook}: {scrape_error}"
                             )
                     else:
-                        logging.warning(f"No link found for {league} at {book}")
+                        logging.warning(f"No link found for {league} at {sportsbook}")
     except Exception as e:
         logging.error(f"Error saving games to DB: {e}")
     finally:
         conn.close()
 
+
+def get_value():
+    conn = get_db_connection()
+    try:
+        with conn:
+            lines = get_lines(conn)
+            # if lines:
+            #     save_to_json(lines)
+            
+            value_bets = find_value_bets(lines)
+            print()
+            print("-" * 50)
+            
+            
+            for bet in value_bets:
+                print(f"Game: {bet['team_1_name']} vs {bet['team_2_name']} on {bet['game_datetime']}")
+                print(f"Prop: {bet['prop_name']} {({bet['prop_type']})}")
+                print(f"Pinnacle 1 Odd: {bet['sportsbook_1_odd']} (Value: {bet['value_difference']})")
+                print(f"Fliff 2 Odd: {bet['sportsbook_2_odd']}")
+                print(f"Take {bet['description']}")
+                print("-" * 50)
+                print()
+            
+
+    except Exception as e:
+        logging.error(f"Error processing odds: {e}")
+    finally:
+        conn.close()
 
 def main():
     parser = argparse.ArgumentParser(description="Sports Betting Data Scraper")
@@ -218,9 +247,11 @@ def main():
         print("Getting value:")
         print("Leagues:", args.leagues)
         print("Books:", args.books)
-        # Add value bet logic here
+        get_value()
 
 
 # Example usage
 if __name__ == "__main__":
     main()
+    # get_value()
+    # get_odds(['nba'], ['fliff'])
