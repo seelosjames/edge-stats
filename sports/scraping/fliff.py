@@ -31,6 +31,9 @@ def get_fliff_odds(conn, urls, sportsbook, league):
     for url_data in urls:
         game_id = url_data[0]
         url = url_data[1]
+        
+        print('Scraping Odds for game')
+        
         if league == 'nba':
             get_fliff_nba_odds(driver, conn, game_id, url, sportsbook, league)
         elif league == 'nhl':
@@ -109,7 +112,7 @@ def get_fliff_nhl_odds(driver, conn, game_id, url, sportsbook, league):
                         prop_type = "Game"
                         prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
                         
-                        print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                        # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                         
                         # Insert prop into DB
                         prop_data = (prop_uuid, game_id, prop_type, prop_name)
@@ -128,7 +131,7 @@ def get_fliff_nhl_odds(driver, conn, game_id, url, sportsbook, league):
                         
                         prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
                         
-                        print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                        # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                         
                         # Insert prop into DB
                         prop_data = (prop_uuid, game_id, prop_type, prop_name)
@@ -140,7 +143,7 @@ def get_fliff_nhl_odds(driver, conn, game_id, url, sportsbook, league):
                         prop_name = player_name + prop
                         prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
                         
-                        print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                        # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                         
                         # Insert prop into DB
                         prop_data = (prop_uuid, game_id, prop_type, prop_name)
@@ -164,7 +167,7 @@ def get_fliff_nhl_odds(driver, conn, game_id, url, sportsbook, league):
                         
                             line_uuid = generate_line_uuid(prop_uuid, description, odd, sportsbook)
                             
-                            print(f'Found line: {description} at {odd}')
+                            # print(f'Found line: {description} at {odd}')
                     
                             # Insert line into DB
                             line_data = (prop_id, line_uuid, odd, description, sportsbook)
@@ -215,7 +218,7 @@ def get_fliff_nba_odds(driver, conn, game_id, url, sportsbook, league):
                         prop_type = "Game"
                         prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
                         
-                        print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                        # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                         
                         # Insert prop into DB
                         prop_data = (prop_uuid, game_id, prop_type, prop_name)
@@ -231,7 +234,7 @@ def get_fliff_nba_odds(driver, conn, game_id, url, sportsbook, league):
                         prop_type = normalize_prop_type(prop_title[1])
                         prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
                         
-                        print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                        # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                         
                         # Insert prop into DB
                         prop_data = (prop_uuid, game_id, prop_type, prop_name)
@@ -245,7 +248,7 @@ def get_fliff_nba_odds(driver, conn, game_id, url, sportsbook, league):
                         prop_name = player_name + prop
                         prop_uuid = generate_prop_uuid(prop_name, prop_type, game_id)
                         
-                        print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                        # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                         
                         # Insert prop into DB
                         prop_data = (prop_uuid, game_id, prop_type, prop_name)
@@ -268,7 +271,7 @@ def get_fliff_nba_odds(driver, conn, game_id, url, sportsbook, league):
                         
                             line_uuid = generate_line_uuid(prop_uuid, description, odd, sportsbook)
                             
-                            print(f'Found line: {description} at {odd}')
+                            # print(f'Found line: {description} at {odd}')
                     
                             # Insert line into DB
                             line_data = (prop_id, line_uuid, odd, description, sportsbook)

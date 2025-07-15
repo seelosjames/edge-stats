@@ -1,7 +1,6 @@
 import argparse
 import logging
 import json
-from collections import defaultdict
 from database.db import *
 from scraping.pinnacle import *
 from scraping.fliff import *

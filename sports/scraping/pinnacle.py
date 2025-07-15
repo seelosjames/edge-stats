@@ -32,7 +32,7 @@ def pinnacle_parse_line_info(conn, line_divs, prop_uuid, prop_id, prop_type, spo
         odd = decimal_to_percentage(float(line_info[1].text))
         line_uuid = generate_line_uuid(prop_uuid, description, odd, sportsbook)
         
-        print(f'Found line: {description} at {odd}')
+        # print(f'Found line: {description} at {odd}')
         
         # Insert line into DB
         line_data = (prop_id, line_uuid, odd, convert_number_to_float(description), sportsbook)
@@ -212,6 +212,8 @@ def get_pinnacle_odds(conn, urls, sportsbook, league):
         game_id = url_data[0]
         url = url_data[1]
         
+        print('Scraping Odds for game')
+        
         if league == 'nba':
             get_pinnacle_nba_odds(driver, conn, game_id, url, sportsbook, league)
         elif league == 'nhl':
@@ -340,7 +342,7 @@ def get_pinnacle_nhl_odds(driver, conn, game_id, url, sportsbook, league):
                     By.CLASS_NAME, "button-wrapper-Z7pE7Fol_T"
                 )
 
-                print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
+                # print(f'Found {prop_type} prop: {prop_name} at {sportsbook}')
                 
                 # Insert prop into DB
                 prop_data = (prop_uuid, game_id, prop_type, prop_name)
