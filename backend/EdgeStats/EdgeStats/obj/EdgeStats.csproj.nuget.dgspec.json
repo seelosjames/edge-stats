@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {}
+    "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {}
   },
   "projects": {
-    "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {
+    "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+        "projectUniqueName": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
         "projectName": "EdgeStats",
-        "projectPath": "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
-        "packagesPath": "C:\\Users\\James Seelos\\.nuget\\packages\\",
-        "outputPath": "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
+        "projectPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+        "packagesPath": "C:\\Users\\gjoav\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\James Seelos\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\gjoav\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -50,13 +50,13 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Swashbuckle.AspNetCore": {
+            "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[6.6.2, )"
+              "version": "[9.0.7, )"
             },
-            "System.ComponentModel.Annotations": {
+            "Npgsql": {
               "target": "Package",
-              "version": "[5.0.0, )"
+              "version": "[9.0.3, )"
             }
           },
           "imports": [
