@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {}
+    "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {}
   },
   "projects": {
-    "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {
+    "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+        "projectUniqueName": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
         "projectName": "EdgeStats",
-        "projectPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
-        "packagesPath": "C:\\Users\\gjoav\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
+        "projectPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+        "packagesPath": "C:\\Users\\jseelos\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\gjoav\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\jseelos\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -50,6 +50,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.7, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[9.0.7, )"
@@ -57,6 +61,10 @@
             "Npgsql": {
               "target": "Package",
               "version": "[9.0.3, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.4, )"
             }
           },
           "imports": [

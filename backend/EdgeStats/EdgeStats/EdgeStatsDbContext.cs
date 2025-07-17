@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EdgeStats
 {
-    public class SportsDbContext : DbContext
+    public class EdgeStatsDbContext : DbContext
     {
-        public SportsDbContext(DbContextOptions<SportsDbContext> options) : base(options) { }
+        public EdgeStatsDbContext(DbContextOptions<EdgeStatsDbContext> options) : base(options) { }
 
         public DbSet<Line> Lines { get; set; }
         public DbSet<Prop> Props { get; set; }

@@ -1,22 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\",
+  "WorkspaceRootPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\gjoav\\onedrive\\documents\\james\\edge-stats\\backend\\edgestats\\edgestats\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|solutionrelative:edgestats\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\gjoav\\onedrive\\documents\\james\\edge-stats\\backend\\edgestats\\edgestats\\edgestatsdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|solutionrelative:edgestats\\edgestatsdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\gjoav\\onedrive\\documents\\james\\edge-stats\\backend\\edgestats\\edgestats\\models\\line.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\jseelos\\documents\\github\\edge-stats\\backend\\edgestats\\edgestats\\models\\line.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|solutionrelative:edgestats\\models\\line.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\gjoav\\onedrive\\documents\\james\\edge-stats\\backend\\edgestats\\edgestats\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|solutionrelative:edgestats\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\jseelos\\documents\\github\\edge-stats\\backend\\edgestats\\edgestats\\edgestatsdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|solutionrelative:edgestats\\edgestatsdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|c:\\users\\jseelos\\documents\\github\\edge-stats\\backend\\edgestats\\edgestats\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC9E23A0-85C5-4F57-9A85-468B95FDF54E}|EdgeStats\\EdgeStats.csproj|solutionrelative:edgestats\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,17 +22,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\Program.cs",
               "RelativeDocumentMoniker": "EdgeStats\\Program.cs",
-              "ToolTip": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\Program.cs",
+              "ToolTip": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\Program.cs",
               "RelativeToolTip": "EdgeStats\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-17T03:29:44.892Z",
               "IsPinned": true,
@@ -46,37 +42,24 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "EdgeStatsDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStatsDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStatsDbContext.cs",
               "RelativeDocumentMoniker": "EdgeStats\\EdgeStatsDbContext.cs",
-              "ToolTip": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStatsDbContext.cs",
+              "ToolTip": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStatsDbContext.cs",
               "RelativeToolTip": "EdgeStats\\EdgeStatsDbContext.cs",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAIwAcAAAALAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-17T04:09:21.806Z",
+              "WhenOpened": "2025-07-17T17:09:48.064Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\appsettings.json",
-              "RelativeDocumentMoniker": "EdgeStats\\appsettings.json",
-              "ToolTip": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\appsettings.json",
-              "RelativeToolTip": "EdgeStats\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAABNAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-07-17T03:43:21.445Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Line.cs",
-              "DocumentMoniker": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\models\\Line.cs",
+              "DocumentMoniker": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\models\\Line.cs",
               "RelativeDocumentMoniker": "EdgeStats\\models\\Line.cs",
-              "ToolTip": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\models\\Line.cs",
+              "ToolTip": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\models\\Line.cs",
               "RelativeToolTip": "EdgeStats\\models\\Line.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAmwBoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-17T03:05:48.889Z",
               "EditorCaption": ""

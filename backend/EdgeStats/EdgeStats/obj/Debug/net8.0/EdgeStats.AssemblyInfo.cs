@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EdgeStats")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7fe371ea4927ee1dbec19c247662d2607b32070")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a22e68cfde7ba9bbaf38aeea4720c1b4ba2f8b46")]
 [assembly: System.Reflection.AssemblyProductAttribute("EdgeStats")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EdgeStats")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
