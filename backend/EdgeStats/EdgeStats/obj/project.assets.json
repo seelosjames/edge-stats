@@ -766,23 +766,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\jseelos\\.nuget\\packages\\": {},
+    "C:\\Users\\James Seelos\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+      "projectUniqueName": "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
       "projectName": "EdgeStats",
-      "projectPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
-      "packagesPath": "C:\\Users\\jseelos\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
+      "projectPath": "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+      "packagesPath": "C:\\Users\\James Seelos\\.nuget\\packages\\",
+      "outputPath": "D:\\Personal Projects\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\jseelos\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\James Seelos\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],

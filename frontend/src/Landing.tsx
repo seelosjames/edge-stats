@@ -2,39 +2,68 @@ import { Link } from "react-router-dom";
 
 function Landing() {
 	return (
-		<div className="min-h-screen bg-gray-100 text-gray-900 p-6 flex flex-col items-center justify-evenly">
-			<div className="flex flex-col items-center justify-center mt-16">
-				{/* Main Logo Section */}
-				<div className="flex items-center gap-8 mb-6">
-					<img src="/logos/react.svg" alt="React Logo" className="h-64 w-64 object-contain" />
-					<span className="text-6xl font-bold text-gray-700">+</span>
-					<img src="/logos/django.svg" alt="Django Logo" className="h-64 w-64 object-contain" />
+		<main className="p-4 max-w-7xl mx-auto">
+			<section className="mb-6 bg-white p-4 rounded shadow">
+				<h2 className="text-lg font-semibold mb-2">Filters</h2>
+				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+					<select className="w-full border p-2 rounded">
+						<option value="">All Sports</option>
+						<option>NBA</option>
+						<option>NFL</option>
+						<option>MLB</option>
+					</select>
+					<select className="w-full border p-2 rounded">
+						<option value="">All Books</option>
+						<option>FanDuel</option>
+						<option>DraftKings</option>
+						<option>Caesars</option>
+					</select>
+					<select className="w-full border p-2 rounded">
+						<option value="">Market Type</option>
+						<option>Moneyline</option>
+						<option>Spread</option>
+						<option>Over/Under</option>
+					</select>
+					<input type="number" placeholder="Min Edge %" className="w-full border p-2 rounded" />
 				</div>
+			</section>
 
-				{/* Headline */}
-				<h1 className="text-5xl font-extrabold text-center mb-4">Welcome to My React/Django Template</h1>
-
-				{/* Subtitle */}
-				<p className="text-lg text-gray-600 text-center max-w-2xl mb-8">
-					A modern, scalable, and efficient starter template for building full-stack applications with React and Django. Also includes the
-					following technologies:
-				</p>
-
-				{/* Additional Tech Logos Section */}
-				<div className="flex items-center gap-6 mt-6">
-					<img src="/logos/djangorest.svg" alt="Django Rest Logo" className="h-12 w-12 object-contain" />
-					<img src="/logos/tailwindcss.svg" alt="Tailwind CSS Logo" className="h-12 w-12 object-contain" />
-					<img src="/logos/typescript.svg" alt="TypeScript Logo" className="h-12 w-12 object-contain" />
-					<img src="/logos/vite.svg" alt="Vite Logo" className="h-12 w-12 object-contain" />
-					<img src="/logos/postgresql.svg" alt="PostgreSql Logo" className="h-12 w-12 object-contain" />
+			<section className="bg-white p-4 rounded shadow">
+				<h2 className="text-lg font-semibold mb-4">Top Value Bets</h2>
+				<div className="overflow-x-auto">
+					<table className="w-full text-sm text-left border">
+						<thead className="bg-gray-200">
+							<tr>
+								<th className="p-2">Sport</th>
+								<th className="p-2">Matchup</th>
+								<th className="p-2">Market</th>
+								<th className="p-2">Book</th>
+								<th className="p-2">Odds</th>
+								<th className="p-2">Edge %</th>
+								<th className="p-2">Starts In</th>
+								<th className="p-2">Action</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y">
+							<tr>
+								<td className="p-2">NBA</td>
+								<td className="p-2">Lakers vs Celtics</td>
+								<td className="p-2">Moneyline</td>
+								<td className="p-2">FanDuel</td>
+								<td className="p-2">+125</td>
+								<td className="p-2 text-green-600 font-semibold">+8.3%</td>
+								<td className="p-2">3h 12m</td>
+								<td className="p-2">
+									<a href="#" className="text-blue-500 hover:underline">
+										View
+									</a>
+								</td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
-			</div>
-			
-			{/* Private Route Test */}
-			<Link to="/testprivateroute" className="mt-6">
-				<button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Test Private Route Here!</button>
-			</Link>
-		</div>
+			</section>
+		</main>
 	);
 }
 
