@@ -17,15 +17,11 @@ namespace EdgeStats.models
         [Required]
         [Column("prop_id")]
         public int PropId { get; set; }
-
-        [ForeignKey("PropId")]
         public Prop Prop { get; set; }
 
         [Required]
         [Column("sportsbook_id")]
         public int SportsbookId { get; set; }
-
-        [ForeignKey("SportsbookId")]
         public Sportsbook Sportsbook { get; set; }
 
         [MaxLength(255)]
