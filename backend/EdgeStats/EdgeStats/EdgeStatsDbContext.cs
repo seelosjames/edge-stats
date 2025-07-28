@@ -13,6 +13,7 @@ namespace EdgeStats
         public DbSet<Team> Teams { get; set; }
         public DbSet<League> Leagues { get; set; }
         public DbSet<Sportsbook> Sportsbooks { get; set; }
+        public DbSet<WatchlistItems> WatchlistItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
