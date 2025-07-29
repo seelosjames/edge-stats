@@ -1,0 +1,63 @@
+# Build results
+bin/
+obj/
+out/
+artifacts/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio files
+.vs/
+.vscode/
+.vscode-test/
+
+# ASP.NET Core secrets and environment
+secrets.json
+*.env
+.env.*
+appsettings.Development.json
+appsettings.Local.json
+
+# Log files
+*.log
+Logs/
+[Ll]ogs/
+
+# Entity Framework Core
+Migrations/*.Designer.cs
+Migrations/*Snapshot.cs
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Rider
+.idea/
+
+# dotCover
+*.dotCover
+
+# Others
+*.tmp
+*.bak
+*.cache
+*.db
+*.sqlite
