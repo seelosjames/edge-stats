@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EdgeStats.Controllers
 {
@@ -6,9 +7,20 @@ namespace EdgeStats.Controllers
     [Route("watchlist")]
     public class WatchlistItemController : Controller
     {
-        public IActionResult Index()
+        private readonly EdgeStatsDbContext _dbContext;
+
+        public WatchlistItemController(EdgeStatsDbContext dbContext)
         {
-            return View();
+            _dbContext = dbContext;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWatchlist()
+        {
+            var items = await _dbContext.WatchlistItems.ToListAsync();
+
+                return Ok(items);
+        }
+
     }
 }

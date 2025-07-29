@@ -3,6 +3,7 @@ using System;
 using EdgeStats;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EdgeStats.Migrations
 {
     [DbContext(typeof(EdgeStatsDbContext))]
-    partial class EdgeStatsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250729160741_UpdatedWatchlistItemName")]
+    partial class UpdatedWatchlistItemName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,27 +29,30 @@ namespace EdgeStats.Migrations
                 {
                     b.Property<int>("GameId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("game_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GameId"));
 
                     b.Property<DateTime>("GameDateTime")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("game_datetime");
 
                     b.Property<Guid>("GameUuid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("game_uuid");
 
                     b.Property<int>("LeagueId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("league_id");
 
                     b.Property<int>("Team1Id")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("team_1");
 
                     b.Property<int>("Team2Id")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("team_2");
 
                     b.HasKey("GameId");
 
@@ -56,57 +62,65 @@ namespace EdgeStats.Migrations
 
                     b.HasIndex("Team2Id");
 
-                    b.ToTable("Games");
+                    b.ToTable("game");
                 });
 
             modelBuilder.Entity("EdgeStats.models.League", b =>
                 {
                     b.Property<int>("LeagueId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("league_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LeagueId"));
 
                     b.Property<string>("LeagueName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("league_name");
 
                     b.Property<string>("SportType")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("sport_type");
 
                     b.HasKey("LeagueId");
 
-                    b.ToTable("Leagues");
+                    b.ToTable("league");
                 });
 
             modelBuilder.Entity("EdgeStats.models.Line", b =>
                 {
                     b.Property<int>("LineId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("line_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LineId"));
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("description");
 
                     b.Property<Guid>("LineUuid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("line_uuid");
 
                     b.Property<decimal>("Odd")
                         .HasColumnType("decimal(8,4)")
                         .HasColumnName("odd");
 
                     b.Property<int>("PropId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("prop_id");
 
                     b.Property<int>("SportsbookId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("sportsbook_id");
 
                     b.HasKey("LineId");
 
@@ -114,78 +128,89 @@ namespace EdgeStats.Migrations
 
                     b.HasIndex("SportsbookId");
 
-                    b.ToTable("Lines");
+                    b.ToTable("line");
                 });
 
             modelBuilder.Entity("EdgeStats.models.Prop", b =>
                 {
                     b.Property<int>("PropId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("prop_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PropId"));
 
                     b.Property<int>("GameId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("game_id");
 
                     b.Property<string>("PropName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("prop_name");
 
                     b.Property<string>("PropType")
+                        .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("prop_type");
 
                     b.Property<Guid>("PropUuid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("prop_uuid");
 
                     b.HasKey("PropId");
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("Props");
+                    b.ToTable("prop");
                 });
 
             modelBuilder.Entity("EdgeStats.models.Sportsbook", b =>
                 {
                     b.Property<int>("SportsbookId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("sportsbook_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SportsbookId"));
 
                     b.Property<string>("SportsbookName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("sportsbook_name");
 
                     b.HasKey("SportsbookId");
 
-                    b.ToTable("Sportsbooks");
+                    b.ToTable("sportsbook");
                 });
 
             modelBuilder.Entity("EdgeStats.models.Team", b =>
                 {
                     b.Property<int>("TeamId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("team_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TeamId"));
 
                     b.Property<int>("LeagueId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("league_id");
 
                     b.Property<string>("TeamName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("team_name");
 
                     b.HasKey("TeamId");
 
                     b.HasIndex("LeagueId");
 
-                    b.ToTable("Teams");
+                    b.ToTable("team");
                 });
 
             modelBuilder.Entity("EdgeStats.models.WatchlistItem", b =>

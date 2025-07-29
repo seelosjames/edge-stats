@@ -4,22 +4,19 @@ using System.Text.Json.Serialization;
 
 namespace EdgeStats.models
 {
-    [Table("team")]
     public class Team
     {
         [Key]
-        [Column("team_id")]
         public int TeamId { get; set; }
 
         [Required]
         [MaxLength(255)]
-        [Column("team_name")]
-        public string TeamName { get; set; }
+        public string? TeamName { get; set; }
 
         [Required]
-        [Column("league_id")]
+        [ForeignKey("League")]
         public int LeagueId { get; set; }
-        public League League { get; set; }
+        public League? League { get; set; }
 
         [JsonIgnore]
         [InverseProperty("Team1")]

@@ -3,6 +3,7 @@ using System;
 using EdgeStats;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EdgeStats.Migrations
 {
     [DbContext(typeof(EdgeStatsDbContext))]
-    partial class EdgeStatsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250729161934_ChangedTableNames")]
+    partial class ChangedTableNames
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,9 +40,6 @@ namespace EdgeStats.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<int>("LeagueId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<int>("Team1Id")

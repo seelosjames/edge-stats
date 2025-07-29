@@ -3,30 +3,27 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EdgeStats.models
 {
-    [Table("line")]
     public class Line
     {
         [Key]
-        [Column("line_id")]
         public int LineId { get; set; }
 
         [Required]
-        [Column("line_uuid")]
         public Guid LineUuid { get; set; }
 
         [Required]
-        [Column("prop_id")]
+        [ForeignKey("Prop")]
         public int PropId { get; set; }
-        public Prop Prop { get; set; }
+        public Prop? Prop { get; set; }
 
         [Required]
-        [Column("sportsbook_id")]
+        [ForeignKey("Sportsbook")]
         public int SportsbookId { get; set; }
-        public Sportsbook Sportsbook { get; set; }
+        public Sportsbook? Sportsbook { get; set; }
 
+        [Required]
         [MaxLength(255)]
-        [Column("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
         [Column("odd", TypeName = "decimal(8,4)")]

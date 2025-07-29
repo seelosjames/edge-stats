@@ -61,3 +61,4 @@ packages/
 *.cache
 *.db
 *.sqlite
+dummy_data_output/

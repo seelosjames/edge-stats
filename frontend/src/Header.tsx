@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
 import AuthContext from "./context/AuthContext";
 import { useContext } from "react";
 
@@ -10,7 +9,7 @@ function Header() {
     throw new Error("AuthContext must be used within an AuthProvider");
   }
 
-  const { user, logoutUser } = authContext;
+//   const { user, logoutUser } = authContext;
 
   return (
 		<header className="w-full bg-white shadow-md py-4 px-16 flex justify-between items-centers">

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EdgeStats.models
 {
-    public class WatchlistItems
+    public class WatchlistItem
     {
         [Key]
         public int WatchListItemsId { get; set; }
@@ -11,10 +11,10 @@ namespace EdgeStats.models
         [Required]
         public string? UserId { get; set; }
 
-        [ForeignKey("Line")]
         [Required]
+        [ForeignKey("Line")]
         public int LineId { get; set; }
-        public Line Line { get; set; }
+        public Line? Line { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
