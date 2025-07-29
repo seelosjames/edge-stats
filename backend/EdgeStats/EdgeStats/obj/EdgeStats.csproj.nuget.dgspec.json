@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {}
+    "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {
+    "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+        "projectUniqueName": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
         "projectName": "EdgeStats",
-        "projectPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
-        "packagesPath": "C:\\Users\\jseelos\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jseelos\\Documents\\Github\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
+        "projectPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\EdgeStats.csproj",
+        "packagesPath": "C:\\Users\\gjoav\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\gjoav\\OneDrive\\Documents\\James\\edge-stats\\backend\\EdgeStats\\EdgeStats\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\jseelos\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\gjoav\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -55,6 +55,12 @@
               "version": "[8.0.7, )"
             },
             "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.7, )"
             },
