@@ -22,7 +22,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
@@ -38,14 +37,20 @@ app.UseHttpsRedirection();
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthorization();
 
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var db = scope.ServiceProvider.GetRequiredService<EdgeStatsDbContext>();
-        SeederRunner.ExportAllToJson();
-         await SeederRunner.SaveToDatabase(db);
-    }
-}
+app.MapControllers();
+
+
+// Uncomment code block to generate random data for the database
+
+//if (app.Environment.IsDevelopment())
+//{
+//    using (var scope = app.Services.CreateScope())
+//    {
+//        var db = scope.ServiceProvider.GetRequiredService<EdgeStatsDbContext>();
+//        SeederRunner.ExportAllToJson();
+//         await SeederRunner.SaveToDatabase(db);
+//    }
+//}
+
 
 app.Run();

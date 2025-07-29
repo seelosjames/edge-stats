@@ -3,50 +3,15 @@ import { useEffect, useState } from "react";
 
 type Line = {
 	lineId: number;
-	lineUuid: string;
-	propId: number;
-	prop: Prop;
-	sportsbookId: number;
-	sportsbook: Sportsbook;
-	description: string;
-	odd: number;
-};
-
-type Prop = {
-	propId: number;
-	propUuid: string;
-	gameId: number;
 	propName: string;
 	propType: string;
-	game: Game;
-};
-
-type Sportsbook = {
-	sportsbookId: number;
 	sportsbookName: string;
-};
-
-type Game = {
-	gameId: number;
-	gameUuid: string;
-	leagueId: number;
-	league: League;
-	team1: Team;
-	team2: Team;
+	description: string;
+	odd: number;
+	team1: string;
+	team2: string;
 	gameDateTime: Date;
-};
-
-type Team = {
-	teamId: number;
-	teamName: string;
-	leagueId: number;
-	league: League;
-};
-
-type League = {
-	leagueId: number;
-	leagueName: string;
-	sportType: string;
+	gameStatus: string | null;
 };
 
 // utils/dateHelpers.js
@@ -76,25 +41,26 @@ function Landing() {
 	const [sportsbook, setSportsbook] = useState<string | undefined>(undefined);
 	const [propType, setPropType] = useState<string | undefined>(undefined);
 
-	useEffect(() => {
-		const fetchFilters = async () => {
-			const [sportsRes, booksRes, marketsRes] = await Promise.all([
-				fetch("https://localhost:7105/filters/sports"),
-				fetch("https://localhost:7105/filters/sportsbooks"),
-				fetch("https://localhost:7105/filters/prop-types"),
-			]);
-			setLeagues(await sportsRes.json());
-			setBooks(await booksRes.json());
-			setPropTypes(await marketsRes.json());
-		};
+	// useEffect(() => {
+	// 	const fetchFilters = async () => {
+	// 		const [sportsRes, booksRes, marketsRes] = await Promise.all([
+	// 			fetch("https://localhost:7105/filters/sports"),
+	// 			fetch("https://localhost:7105/filters/sportsbooks"),
+	// 			fetch("https://localhost:7105/filters/prop-types"),
+	// 		]);
+	// 		setLeagues(await sportsRes.json());
+	// 		setBooks(await booksRes.json());
+	// 		setPropTypes(await marketsRes.json());
+	// 	};
 
-		fetchFilters();
-	}, []);
+	// 	fetchFilters();
+	// }, []);
 
 	useEffect(() => {
 		axios
 			.get<Line[]>("https://localhost:7105/lines")
 			.then(function (response) {
+				console.log(response.data)
 				setLines(response.data);
 			})
 			.catch(function (error) {
@@ -102,25 +68,25 @@ function Landing() {
 			});
 	}, []);
 
-	useEffect(() => {
-		const fetchLines = async () => {
-			const query = new URLSearchParams({
-				...(league && { league }),
-				...(sportsbook && { sportsbook }),
-				...(propType && { propType }),
-			}).toString();
+	// useEffect(() => {
+	// 	const fetchLines = async () => {
+	// 		const query = new URLSearchParams({
+	// 			...(league && { league }),
+	// 			...(sportsbook && { sportsbook }),
+	// 			...(propType && { propType }),
+	// 		}).toString();
 
-			const response = await fetch(`/lines?${query}`);
-			const data = await response.json();
-			setLines(data);
-		};
+	// 		const response = await fetch(`/lines?${query}`);
+	// 		const data = await response.json();
+	// 		setLines(data);
+	// 	};
 
-		fetchLines();
-	}, [league, sportsbook, propType]);
+	// 	fetchLines();
+	// }, [league, sportsbook, propType]);
 
 	return (
 		<main className="p-4 max-w-7xl mx-auto">
-			<section className="mb-6 bg-white p-4 rounded shadow">
+			{/* <section className="mb-6 bg-white p-4 rounded shadow">
 				<h2 className="text-lg font-semibold mb-2">Filters</h2>
 				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
 					<select value={league} onChange={(e) => setLeague(e.target.value)} className="w-full border p-2 rounded">
@@ -151,7 +117,7 @@ function Landing() {
 					</select>
 					<input type="number" placeholder="Min Edge %" className="w-full border p-2 rounded" />
 				</div>
-			</section>
+			</section> */}
 
 			<section className="bg-white p-4 rounded shadow">
 				<h2 className="text-lg font-semibold mb-4">Top Value Bets</h2>
@@ -159,10 +125,10 @@ function Landing() {
 					<table className="w-full text-sm text-left border">
 						<thead className="bg-gray-200">
 							<tr>
-								<th className="p-2">League</th>
+								<th className="p-2">Line ID</th>
 								<th className="p-2">Matchup</th>
 								<th className="p-2">Sportsbook</th>
-								{/* <th className="p-2">Prop Name</th> */}
+								<th className="p-2">Prop Name</th>
 								<th className="p-2">Prop Type</th>
 								<th className="p-2">Description</th>
 								<th className="p-2">Odds</th>
@@ -172,17 +138,17 @@ function Landing() {
 						<tbody className="divide-y">
 							{lines?.map((line) => (
 								<tr key={line.lineId}>
-									<td className="p-2">{line.prop.game.league.leagueName}</td>
+									<td className="p-2">{line.lineId}</td>
 									<td className="p-2">
-										{line.prop.game.team1.teamName} vs. {line.prop.game.team2.teamName}
+										{line.team1} vs. {line.team2}
 									</td>
-									<td className="p-2">{line.sportsbook.sportsbookName}</td>
+									<td className="p-2">{line.sportsbookName}</td>
 
-									{/* <td className="p-2">{line.prop.propName}</td> */}
-									<td className="p-2">{line.prop.propType}</td>
+									<td className="p-2">{line.propName}</td>
+									<td className="p-2">{line.propType}</td>
 									<td className="p-2">{line.description}</td>
 									<td className="p-2">{line.odd}</td>
-									<td className="p-2">{getStartsInString(line.prop.game.gameDateTime)}</td>
+									<td className="p-2">{getStartsInString(line.gameDateTime)}</td>
 								</tr>
 							))}
 						</tbody>
