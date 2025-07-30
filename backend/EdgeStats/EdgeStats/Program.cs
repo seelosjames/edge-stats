@@ -48,7 +48,7 @@ app.MapControllers();
 //    {
 //        var db = scope.ServiceProvider.GetRequiredService<EdgeStatsDbContext>();
 //        SeederRunner.ExportAllToJson();
-//         await SeederRunner.SaveToDatabase(db);
+//        await SeederRunner.SaveToDatabase(db);
 //    }
 //}
 
