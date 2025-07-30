@@ -43,8 +43,18 @@ namespace EdgeStats.Controllers
             return CreatedAtAction(nameof(GetWatchlist), new { id = newWatchlistItem.LineId }, newWatchlistItem);
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteWatchlistItem
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteWatchlistItem(int watchListItemsId)
+        {
+            var watchlistItem = await _dbContext.WatchlistItems.FindAsync(watchListItemsId);
+            if (watchlistItem == null) { return NotFound(); }
+
+            _dbContext.WatchlistItems.Remove(watchlistItem);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+
+        }
 
     }
 }
