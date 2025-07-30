@@ -1,6 +1,7 @@
 ﻿using EdgeStats.models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using EdgeStats.Dtos;
 
 namespace EdgeStats.Controllers
 {
@@ -18,16 +19,24 @@ namespace EdgeStats.Controllers
         [HttpGet]
         public async Task<IActionResult> GetWatchlist()
         {
+            Console.WriteLine("WE ARE HERE");
+
             var items = await _dbContext.WatchlistItems
-                .Include(l => l.Line)
+                .Include(w => w.Line)
+                .Select(w => new WatchlistItemDto
+                {
+                    LineId = w.LineId,
+                })
                 .ToListAsync();
 
             return Ok(items);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddWatchlistItem(int lineId)
+        public async Task<IActionResult> AddWatchlistItem([FromBody] WatchlistItemDto watchlistItemDto)
         {
+            int lineId = watchlistItemDto.LineId;
+
             var line = await _dbContext.Lines.FindAsync(lineId);
             if (line == null) { return NotFound("Line not found"); }
 
@@ -40,13 +49,17 @@ namespace EdgeStats.Controllers
             _dbContext.WatchlistItems.Add(newWatchlistItem);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetWatchlist), new { id = newWatchlistItem.LineId }, newWatchlistItem);
+            return CreatedAtAction(
+                nameof(GetWatchlist),
+                new { id = newWatchlistItem.LineId },
+                new WatchlistItemDto { LineId = newWatchlistItem.LineId }
+            );
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWatchlistItem(int watchListItemsId)
+        [HttpDelete("{lineId}")]
+        public async Task<IActionResult> DeleteWatchlistItem(int lineId)
         {
-            var watchlistItem = await _dbContext.WatchlistItems.FindAsync(watchListItemsId);
+            var watchlistItem = await _dbContext.WatchlistItems.FirstOrDefaultAsync(w => w.LineId == lineId); ;
             if (watchlistItem == null) { return NotFound(); }
 
             _dbContext.WatchlistItems.Remove(watchlistItem);

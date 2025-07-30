@@ -14,6 +14,10 @@ type Line = {
 	gameStatus: string | null;
 };
 
+type WatchlistItem = {
+	lineId: number;
+};
+
 // utils/dateHelpers.js
 export function getStartsInString(dateTimeStr: Date) {
 	const gameTime = new Date(dateTimeStr);
@@ -56,11 +60,36 @@ function Landing() {
 	// 	fetchFilters();
 	// }, []);
 
+	const [watchlistItems, setWatchlistItems] = useState<number[]>([]);
+
+	useEffect(() => {
+		axios.get<WatchlistItem[]>("https://localhost:7105/watchlist").then(function (response) {
+			setWatchlistItems(response.data.map((item) => item.lineId));
+		});
+	}, []);
+
+	const handleStarClick = (lineId: number): void => {
+		if (watchlistItems.includes(lineId)) {
+			axios
+				.delete(`https://localhost:7105/watchlist/${lineId}`)
+				.then(() => setWatchlistItems((prev) => prev.filter((id) => id !== lineId)))
+				.catch((error) => console.log("Error deleting watchlist item:", error));
+		} else {
+			axios
+				.post<WatchlistItem>("https://localhost:7105/watchlist", { lineId: lineId })
+				.then((response) => {
+					setWatchlistItems((prev) => [...prev, response.data.lineId]);
+				})
+				.catch((error) => {
+					console.error("Error posting to watchlist:", error);
+				});
+		}
+	};
+
 	useEffect(() => {
 		axios
 			.get<Line[]>("https://localhost:7105/lines")
 			.then(function (response) {
-				console.log(response.data)
 				setLines(response.data);
 			})
 			.catch(function (error) {
@@ -133,6 +162,7 @@ function Landing() {
 								<th className="p-2">Description</th>
 								<th className="p-2">Odds</th>
 								<th className="p-2">Starts In</th>
+								<th className="p-2"></th>
 							</tr>
 						</thead>
 						<tbody className="divide-y">
@@ -143,12 +173,22 @@ function Landing() {
 										{line.team1} vs. {line.team2}
 									</td>
 									<td className="p-2">{line.sportsbookName}</td>
-
 									<td className="p-2">{line.propName}</td>
 									<td className="p-2">{line.propType}</td>
 									<td className="p-2">{line.description}</td>
 									<td className="p-2">{line.odd}</td>
 									<td className="p-2">{getStartsInString(line.gameDateTime)}</td>
+									<td className="p-2 text-center">
+										<button
+											onClick={() => handleStarClick(line.lineId)}
+											className={`text-2xl ${
+												watchlistItems.includes(line.lineId) ? "text-yellow-500" : "text-gray-300 hover:text-yellow-500"
+											}`}
+											aria-label="Favorite"
+										>
+											★
+										</button>
+									</td>
 								</tr>
 							))}
 						</tbody>
