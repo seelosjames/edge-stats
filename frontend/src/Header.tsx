@@ -1,30 +1,129 @@
 import { Link } from "react-router-dom";
 import AuthContext from "./context/AuthContext";
-import { useContext } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { FaFilter } from "react-icons/fa";
+import axios from "axios";
 
 function Header() {
-  const authContext = useContext(AuthContext);
+	const [showFilters, setShowFilters] = useState(false);
+	const [selectedSports, setSelectedSports] = useState<string[]>([]);
+	const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
+	const filterRef = useRef<HTMLDivElement>(null);
 
-  if (!authContext) {
-    throw new Error("AuthContext must be used within an AuthProvider");
-  }
+	const handleSportsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const values = Array.from(e.target.selectedOptions, (option) => option.value);
+		setSelectedSports(values);
+	};
 
-//   const { user, logoutUser } = authContext;
+	const handleBooksChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const values = Array.from(e.target.selectedOptions, (option) => option.value);
+		setSelectedBooks(values);
+	};
 
-  return (
-		<header className="w-full bg-white shadow-md py-4 px-16 flex justify-between items-centers">
+const handleRefreshOdds = async () => {
+	try {
+		const response = await axios.post("https://localhost:7105/scraper", {
+			selectedSports,
+			selectedBooks,
+		});
+
+		const { recordsSaved, sourceCount, sportCount } = response.data;
+
+		console.log(`Scraped ${recordsSaved} odds from ${sourceCount} sportsbooks across ${sportCount} sports.`);
+	} catch (error) {
+		console.error("Error scraping odds:", error);
+	}
+};
+
+	// Click outside handler
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+				setShowFilters(false);
+			}
+		}
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, [filterRef]);
+
+	const authContext = useContext(AuthContext);
+
+	if (!authContext) {
+		throw new Error("AuthContext must be used within an AuthProvider");
+	}
+
+	//   const { user, logoutUser } = authContext;
+
+	return (
+		<header className="w-full bg-white shadow-md py-4 px-8 flex justify-between items-centers">
 			{/* Logo Section */}
 			<Link to="/">
 				<div className="flex items-center gap-2">
 					<h1 className="text-2xl font-bold text-blue-600">Edge Stats</h1>
 				</div>
 			</Link>
+			<div className="flex gap-4">
+				<div className="flex items-center gap-4">
+					<p className="text-sm text-gray-500">
+						Last updated: <span id="last-updated">2 mins ago</span>
+					</p>
+					<button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={handleRefreshOdds}>
+						Refresh Odds
+					</button>
+				</div>
 
-			<div className="flex items-center space-x-4">
-				<p className="text-sm text-gray-500">
-					Last updated: <span id="last-updated">2 mins ago</span>
-				</p>
-				<button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Refresh Odds</button>
+				{/* Filters Icon Button */}
+				<div className="flex gap-4 relative" ref={filterRef}>
+					<button onClick={() => setShowFilters(!showFilters)} className="text-gray-600 hover:text-blue-600 transition" title="Filters">
+						<FaFilter className="w-5 h-5" />
+					</button>
+
+					{/* Dropdown Menu */}
+					{showFilters && (
+						<div className="absolute right-0 top-12 mt-2 w-64 bg-white border rounded shadow-md p-4 z-50">
+							<h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
+
+							<div className="flex flex-col gap-4">
+								{/* Sports Multiselect */}
+								<div>
+									<label className="block text-sm text-gray-600 mb-1">Sports</label>
+									<select
+										multiple
+										className="w-full h-24 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+										value={selectedSports}
+										onChange={handleSportsChange}
+									>
+										<option value="nfl">NFL</option>
+										<option value="nba">NBA</option>
+										<option value="mlb">MLB</option>
+										<option value="nhl">NHL</option>
+										<option value="ncaaf">NCAAF</option>
+									</select>
+								</div>
+
+								{/* Sportsbook Multiselect */}
+								<div>
+									<label className="block text-sm text-gray-600 mb-1">Sportsbooks</label>
+									<select
+										multiple
+										className="w-full h-24 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+										value={selectedBooks}
+										onChange={handleBooksChange}
+									>
+										<option value="draftkings">DraftKings</option>
+										<option value="fanduel">FanDuel</option>
+										<option value="betmgm">BetMGM</option>
+										<option value="caesars">Caesars</option>
+										<option value="pointsbet">PointsBet</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 
 			{/* Authentication Section */}

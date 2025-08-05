@@ -63,38 +63,45 @@ function Landing() {
 	const [watchlistItems, setWatchlistItems] = useState<number[]>([]);
 
 	useEffect(() => {
-		axios.get<WatchlistItem[]>("https://localhost:7105/watchlist").then(function (response) {
-			setWatchlistItems(response.data.map((item) => item.lineId));
-		});
+		const fetchWatchlist = async () => {
+			try {
+				const response = await axios.get<WatchlistItem[]>("https://localhost:7105/watchlist");
+				setWatchlistItems(response.data.map((item) => item.lineId));
+			} catch (error) {
+				console.error("Error fetching watchlist:", error);
+			}
+		};
+
+		fetchWatchlist();
 	}, []);
 
-	const handleStarClick = (lineId: number): void => {
-		if (watchlistItems.includes(lineId)) {
-			axios
-				.delete(`https://localhost:7105/watchlist/${lineId}`)
-				.then(() => setWatchlistItems((prev) => prev.filter((id) => id !== lineId)))
-				.catch((error) => console.log("Error deleting watchlist item:", error));
-		} else {
-			axios
-				.post<WatchlistItem>("https://localhost:7105/watchlist", { lineId: lineId })
-				.then((response) => {
-					setWatchlistItems((prev) => [...prev, response.data.lineId]);
-				})
-				.catch((error) => {
-					console.error("Error posting to watchlist:", error);
+	const handleStarClick = async (lineId: number): Promise<void> => {
+		try {
+			if (watchlistItems.includes(lineId)) {
+				await axios.delete(`https://localhost:7105/watchlist/${lineId}`);
+				setWatchlistItems((prev) => prev.filter((id) => id !== lineId));
+			} else {
+				const response = await axios.post<WatchlistItem>("https://localhost:7105/watchlist", {
+					lineId,
 				});
+				setWatchlistItems((prev) => [...prev, response.data.lineId]);
+			}
+		} catch (error) {
+			console.error("Error updating watchlist:", error);
 		}
 	};
 
 	useEffect(() => {
-		axios
-			.get<Line[]>("https://localhost:7105/lines")
-			.then(function (response) {
+		const fetchLines = async () => {
+			try {
+				const response = await axios.get<Line[]>("https://localhost:7105/lines");
 				setLines(response.data);
-			})
-			.catch(function (error) {
-				console.error("Error fetching data:", error);
-			});
+			} catch (error) {
+				console.error("Error fetching lines:", error);
+			}
+		};
+
+		fetchLines();
 	}, []);
 
 	// useEffect(() => {
