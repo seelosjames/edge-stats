@@ -1,5 +1,6 @@
 using EdgeStats;
 using EdgeStats.Seed;
+using EdgeStats.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -29,6 +30,8 @@ builder.Services.AddDbContext<EdgeStatsDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddTransient<Scraper>();
 
 var app = builder.Build();
 
