@@ -1,8 +1,6 @@
 using EdgeStats;
-using EdgeStats.Seed;
 using EdgeStats.Services;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -31,7 +29,7 @@ builder.Services.AddDbContext<EdgeStatsDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddTransient<Scraper>();
+builder.Services.AddScoped<ScraperService>();
 
 var app = builder.Build();
 
@@ -41,19 +39,6 @@ app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthorization();
 
 app.MapControllers();
-
-
-// Uncomment code block to generate random data for the database
-
-//if (app.Environment.IsDevelopment())
-//{
-//    using (var scope = app.Services.CreateScope())
-//    {
-//        var db = scope.ServiceProvider.GetRequiredService<EdgeStatsDbContext>();
-//        SeederRunner.ExportAllToJson();
-//        await SeederRunner.SaveToDatabase(db);
-//    }
-//}
 
 
 app.Run();

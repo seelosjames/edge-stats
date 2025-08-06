@@ -1,47 +1,57 @@
-﻿using OpenQA.Selenium;
+﻿using EdgeStats.Dtos;
+using EdgeStats.Utils.Mappings;
+using EdgeStats.Utils.Parsing;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using Scraper.Utils;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
-namespace Scraper
+namespace EdgeStats.Scrapers
 {
-	internal class PinnacleScraper
+	public class PinnacleScraper : ISportsbookScraper
 	{
-		public class Game
+		private readonly EdgeStatsDbContext _db;
+
+		public PinnacleScraper(EdgeStatsDbContext dbContext)
 		{
-			public string League { get; set; }
-			public string Sportsbook { get; set; }
-			public string Team1 { get; set; }
-			public string Team2 { get; set; }
-			public DateTime GameTime { get; set; }
-			public string GameUrl { get; set; }
-			public string GameUuid { get; set; }
+			_db = dbContext;
 		}
 
-		public class Prop
+		public async Task ScrapeAsync(List<string> leagues)
 		{
-			public string PropName { get; set; }
-			public string PropType { get; set; }
-			public string PropUuid { get; set; }
-			public int GameId { get; set; }
+			foreach (var league in leagues)
+			{
+				string url = LeagueMappings.PinnacleUrls[league]; // Assume you have this
+				var games = GetPinnacleGames(url, "Pinnacle", league);
+
+				// Optionally save games here with _db.Games.AddRange(games);
+				GetPinnacleOdds(games);
+				await _db.SaveChangesAsync();
+			}
 		}
 
-		public class Line
+		public void GetPinnacleOdds(List<ScrapedGameDto> gamesFound)
 		{
-			public string LineUuid { get; set; }
-			public string PropId { get; set; }
-			public string PropUuid { get; set; }
-			public string Description { get; set; }
-			public Double Odd { get; set; }
-			public string Sportsbook {  set; get; }
+			var chromeOptions = new ChromeOptions();
+			chromeOptions.AddArgument("--no-sandbox");
+			chromeOptions.AddArgument("--disable-dev-shm-usage");
+			chromeOptions.AddArgument("--disable-gpu");
+			//chromeOptions.AddArgument("--headless=new");
+			//chromeOptions.AddArgument("--window-size=1920,1080");
 
+			using var driver = new ChromeDriver(chromeOptions);
+			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+			foreach (var game in gamesFound)
+			{
+				GetPinnacleProps(driver, wait, game);
+			}
 		}
 
-		public List<Game> GetPinnacleGames(string url, string sportsbook, string league)
+		public List<ScrapedGameDto> GetPinnacleGames(string url, string sportsbook, string league)
 		{
-			var gamesFound = new List<Game>();
+			var gamesFound = new List<ScrapedGameDto>();
 
 			var chromeOptions = new ChromeOptions();
 			chromeOptions.AddArgument("--no-sandbox");
@@ -56,8 +66,6 @@ namespace Scraper
 			try
 			{
 				driver.Navigate().GoToUrl(url);
-
-				//Thread.Sleep(10000);
 
 				var gameElements = wait.Until(d =>
 				{
@@ -99,9 +107,9 @@ namespace Scraper
 						CultureInfo.InvariantCulture
 					);
 
-					var gameUuid = IdGenerator.GenerateGameUuid(team1, team2, dateTimeObj);
+					var gameUuid = IdHelper.GenerateGameUuid(team1, team2, dateTimeObj);
 
-					gamesFound.Add(new Game
+					gamesFound.Add(new ScrapedGameDto
 					{
 						League = league,
 						Sportsbook = sportsbook,
@@ -121,29 +129,10 @@ namespace Scraper
 			{
 				driver.Quit();
 			}
-
 			return gamesFound;
 		}
 
-		public void GetPinnacleOdds(List<Game> gamesFound)
-		{
-			var chromeOptions = new ChromeOptions();
-			chromeOptions.AddArgument("--no-sandbox");
-			chromeOptions.AddArgument("--disable-dev-shm-usage");
-			chromeOptions.AddArgument("--disable-gpu");
-			//chromeOptions.AddArgument("--headless=new");
-			//chromeOptions.AddArgument("--window-size=1920,1080");
-
-			using var driver = new ChromeDriver(chromeOptions);
-			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-
-			foreach (var game in gamesFound)
-			{
-				GetPinnacleProps(driver, wait, game);
-			}
-		}
-
-		private void GetPinnacleProps(ChromeDriver driver, WebDriverWait wait, Game game)
+		private void GetPinnacleProps(ChromeDriver driver, WebDriverWait wait, ScrapedGameDto game)
 		{
 			try
 			{
@@ -189,9 +178,9 @@ namespace Scraper
 
 						string propName = Normalizer.NormalizeFromMapping(title["prop_name"], Mapping.PropNameMapping);
 						string propType = title["prop_type"];
-						string propUuid = IdGenerator.GeneratePropUuid(propName, propType, 0); // Get Game Id somehow
+						string propUuid = IdHelper.GeneratePropUuid(propName, propType, 0); // Get Game Id somehow
 
-						Prop prop = new Prop
+						ScrapedPropDto prop = new ScrapedPropDto
 						{
 							PropName = propName,
 							PropType = propType,
@@ -236,7 +225,7 @@ namespace Scraper
 			}
 		}
 
-		private void GetPinnacleLines(ChromeDriver driver, WebDriverWait wait, IList<IWebElement> lineDivs, Prop prop, Game game, string? team1, string? team2)
+		private void GetPinnacleLines(ChromeDriver driver, WebDriverWait wait, IList<IWebElement> lineDivs, ScrapedPropDto prop, ScrapedGameDto game, string? team1, string? team2)
 		{
 			for (int i = 0; i < lineDivs.Count; i++)
 			{
@@ -270,22 +259,16 @@ namespace Scraper
 				}
 
 				double odd = OddsConverter.DecimalToPercentage(double.Parse(lineInfo[1].Text));
-				string lineUuid = IdGenerator.GenerateLineUuid(prop.PropUuid, description, game.Sportsbook);
+				string lineUuid = IdHelper.GenerateLineUuid(prop.PropUuid, description, game.Sportsbook);
 
-				var line = new Line
+				var line = new ScrapedLineDto
 				{
 					LineUuid = lineUuid,
 					Odd = odd,
-					Description = StringParser.FormatTrailingNumber(description),
+					Description = StringParser.PinnacleParseLineDesc(description),
 					Sportsbook = game.Sportsbook
 				};
-
 			}
-
-			Console.WriteLine();
 		}
-
-
-
 	}
 }
