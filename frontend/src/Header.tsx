@@ -55,10 +55,10 @@ function Header() {
 		throw new Error("AuthContext must be used within an AuthProvider");
 	}
 
-	//   const { user, logoutUser } = authContext;
+	  const { user, logoutUser } = authContext;
 
 	return (
-		<header className="w-full bg-white shadow-md py-4 px-8 flex justify-between items-centers">
+		<header className="w-full bg-sea_green shadow-md py-4 px-8 flex justify-between items-centers">
 			{/* Logo Section */}
 			<Link to="/">
 				<div className="flex items-center gap-2">
@@ -119,10 +119,10 @@ function Header() {
 			</div>
 
 			{/* Authentication Section */}
-			{/* <div>
+			<div>
 				{user ? (
 					<div className="flex items-center gap-4">
-						<FaUserCircle className="text-gray-700 text-2xl" />
+						{/* <FaUserCircle className="text-gray-700 text-2xl" /> */}
 						<button
 							onClick={logoutUser} // Call the logout function here
 							className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
@@ -140,7 +140,7 @@ function Header() {
 						</Link>
 					</div>
 				)}
-			</div> */}
+			</div>
 		</header>
 	);
 }

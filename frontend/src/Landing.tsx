@@ -122,6 +122,8 @@ function Landing() {
 
 	return (
 		<main className="p-4 max-w-7xl mx-auto">
+			<div className="bg-sea_green-500 text-black p-4">Testing sea green background</div>
+
 			{/* <section className="mb-6 bg-white p-4 rounded shadow">
 				<h2 className="text-lg font-semibold mb-2">Filters</h2>
 				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -154,7 +156,6 @@ function Landing() {
 					<input type="number" placeholder="Min Edge %" className="w-full border p-2 rounded" />
 				</div>
 			</section> */}
-
 			<section className="bg-white p-4 rounded shadow">
 				<h2 className="text-lg font-semibold mb-4">Top Value Bets</h2>
 				<div className="overflow-x-auto">
