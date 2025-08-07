@@ -6,13 +6,13 @@ import axios from "axios";
 
 function Header() {
 	const [showFilters, setShowFilters] = useState(false);
-	const [selectedSports, setSelectedSports] = useState<string[]>([]);
+	const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
 	const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
 	const filterRef = useRef<HTMLDivElement>(null);
 
 	const handleSportsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const values = Array.from(e.target.selectedOptions, (option) => option.value);
-		setSelectedSports(values);
+		setSelectedLeagues(values);
 	};
 
 	const handleBooksChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -20,20 +20,20 @@ function Header() {
 		setSelectedBooks(values);
 	};
 
-const handleRefreshOdds = async () => {
-	try {
-		const response = await axios.post("https://localhost:7105/scraper", {
-			selectedSports,
-			selectedBooks,
-		});
+	const handleRefreshOdds = async () => {
+		try {
+			const response = await axios.post("https://localhost:7105/scraper", {
+				Leagues: selectedLeagues,
+				Sportsbooks: selectedBooks,
+			});
 
-		const { recordsSaved, sourceCount, sportCount } = response.data;
+			const { recordsSaved, sourceCount, sportCount } = response.data;
 
-		console.log(`Scraped ${recordsSaved} odds from ${sourceCount} sportsbooks across ${sportCount} sports.`);
-	} catch (error) {
-		console.error("Error scraping odds:", error);
-	}
-};
+			console.log(`Scraped ${recordsSaved} odds from ${sourceCount} sportsbooks across ${sportCount} sports.`);
+		} catch (error) {
+			console.error("Error scraping odds:", error);
+		}
+	};
 
 	// Click outside handler
 	useEffect(() => {
@@ -93,14 +93,10 @@ const handleRefreshOdds = async () => {
 									<select
 										multiple
 										className="w-full h-24 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-										value={selectedSports}
+										value={selectedLeagues}
 										onChange={handleSportsChange}
 									>
 										<option value="nfl">NFL</option>
-										<option value="nba">NBA</option>
-										<option value="mlb">MLB</option>
-										<option value="nhl">NHL</option>
-										<option value="ncaaf">NCAAF</option>
 									</select>
 								</div>
 
@@ -113,11 +109,7 @@ const handleRefreshOdds = async () => {
 										value={selectedBooks}
 										onChange={handleBooksChange}
 									>
-										<option value="draftkings">DraftKings</option>
-										<option value="fanduel">FanDuel</option>
-										<option value="betmgm">BetMGM</option>
-										<option value="caesars">Caesars</option>
-										<option value="pointsbet">PointsBet</option>
+										<option value="Pinnacle">Pinnacle</option>
 									</select>
 								</div>
 							</div>

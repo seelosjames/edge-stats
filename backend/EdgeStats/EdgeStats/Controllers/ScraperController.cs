@@ -5,21 +5,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace EdgeStats.Controllers
 {
 	[ApiController]
-	[Route("controller")]
+	[Route("scraper")]
 	public class ScraperController : Controller
 	{
 		private readonly ScraperService _scraperService;
 
-		public ScraperController(ScraperService scraper, EdgeStatsDbContext dbContext)
+		public ScraperController(ScraperService scraper)
 		{
 			_scraperService = scraper;
 		}
 
-		[HttpPost("scrape")]
+		[HttpPost]
 		public async Task<IActionResult> Scrape([FromBody] ScrapeRequestDto request)
 		{
-			if (request.Leagues.Count == 0 || request.Sportsbooks.Count == 0)
-				return BadRequest("League and sportsbook must be provided.");
+			Console.WriteLine(request);
+			//if (request.Leagues.Count == 0 || request.Sportsbooks.Count == 0)
+			//	return BadRequest("League and sportsbook must be provided.");
 
 			await _scraperService.ScrapeAsync(request.Leagues, request.Sportsbooks);
 
