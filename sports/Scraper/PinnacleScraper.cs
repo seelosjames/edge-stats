@@ -4,6 +4,7 @@ using OpenQA.Selenium.Support.UI;
 using Scraper.Utils;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using static Scraper.PinnacleScraper;
 
 namespace Scraper
 {
@@ -57,8 +58,6 @@ namespace Scraper
 			{
 				driver.Navigate().GoToUrl(url);
 
-				//Thread.Sleep(10000);
-
 				var gameElements = wait.Until(d =>
 				{
 					var elements = d.FindElements(By.XPath("//*[@id='root']/div[1]/div[2]/main/div/div[4]/div[2]/div/div"));
@@ -67,7 +66,7 @@ namespace Scraper
 
 				var gameUrls = new List<string>();
 
-				Console.WriteLine("Games Found: " + gameElements.Count);
+				Console.WriteLine();
 				foreach (var game in gameElements)
 				{
 					if (game.GetAttribute("class") == "row-u9F3b9WCM3 row-k9ktBvvTsJ")
@@ -111,7 +110,7 @@ namespace Scraper
 						GameUrl = gameUrl,
 						GameUuid = gameUuid
 					});
-				}
+                }
 			}
 			catch (Exception ex)
 			{
@@ -139,6 +138,7 @@ namespace Scraper
 
 			foreach (var game in gamesFound)
 			{
+				Console.WriteLine("HELLO");
 				GetPinnacleProps(driver, wait, game);
 			}
 		}
@@ -199,12 +199,16 @@ namespace Scraper
 							GameId = 0,
 						};
 
+
 						try
 						{
 							var button = propDiv.FindElement(By.XPath("div[2]/button"));
-							button.Click();
-						}
-						catch (NoSuchElementException)
+							if (button.Text == "Show more")
+							{
+                                button.Click();
+                            }
+                        }
+                        catch (NoSuchElementException)
 						{
 							// Continue if there's no button to click
 						}
@@ -230,11 +234,11 @@ namespace Scraper
 					}
 				}
 			}
-			finally
-			{
-				driver.Quit();
-			}
-		}
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error scraping game: {ex.Message}");
+            }
+        }
 
 		private void GetPinnacleLines(ChromeDriver driver, WebDriverWait wait, IList<IWebElement> lineDivs, Prop prop, Game game, string? team1, string? team2)
 		{
@@ -279,6 +283,8 @@ namespace Scraper
 					Description = StringParser.FormatTrailingNumber(description),
 					Sportsbook = game.Sportsbook
 				};
+
+				Console.WriteLine($"{line.Description} at {line.Odd}");
 
 			}
 

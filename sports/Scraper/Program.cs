@@ -14,10 +14,12 @@ public class Program
             league: "NFL"
         );
 
+
         // Use the games list however you want
         foreach (var game in games)
         {
             Console.WriteLine($"{game.GameUuid} - {game.Team1} vs {game.Team2} on {game.GameTime}");
         }
+        scraper.GetPinnacleOdds(games);
     }
 }
