@@ -4,7 +4,9 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				sea_green: {
+				text: "#050706",
+				background: "#f3f3f3",
+				seagreen: {
 					DEFAULT: "#2f8052",
 					100: "#091910",
 					200: "#133321",
