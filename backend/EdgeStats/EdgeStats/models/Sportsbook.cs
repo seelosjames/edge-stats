@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EdgeStats.models
+namespace EdgeStats.Models
 {
     public class Sportsbook
     {

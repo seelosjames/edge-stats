@@ -1,4 +1,5 @@
 ﻿using EdgeStats.Scrapers;
+using Microsoft.EntityFrameworkCore;
 
 namespace EdgeStats.Services
 {
@@ -13,6 +14,9 @@ namespace EdgeStats.Services
 
 		public async Task ScrapeAsync(List<string> leagues, List<string> sportsbooks)
 		{
+
+			await RemoveOldGamesAsync();
+
 			if (sportsbooks.Count == 0)
 			{
 				ISportsbookScraper? scraper = new TestScraper(_dbContext);
@@ -38,6 +42,21 @@ namespace EdgeStats.Services
                     await scraper.ScrapeAsync(leagues);
                 }
             }
+		}
+
+		private async Task RemoveOldGamesAsync()
+		{
+			var cutoff = DateTime.UtcNow;
+			var oldGames = await _dbContext.Games
+				.Where(g => g.GameDateTime < cutoff)
+				.ToListAsync();
+
+			if (oldGames.Count > 0)
+			{
+				_dbContext.Games.RemoveRange(oldGames);
+				await _dbContext.SaveChangesAsync();
+				Console.WriteLine($"Deleted {oldGames.Count} old games.");
+			}
 		}
 	}
 }

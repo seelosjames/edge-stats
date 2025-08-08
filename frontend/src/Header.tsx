@@ -2,13 +2,8 @@ import { Link } from "react-router-dom";
 import AuthContext from "./context/AuthContext";
 import { useContext, useEffect, useRef, useState } from "react";
 import { FaFilter } from "react-icons/fa";
-import axios from "axios";
 
 function Header() {
-
-
-	
-
 	const authContext = useContext(AuthContext);
 
 	if (!authContext) {
@@ -39,7 +34,7 @@ function Header() {
 				) : (
 					<div className="flex gap-4 items-center">
 						<Link to="/signup">
-							<button className="px-4 py-1 bg-white text-seagreen border border-seagreen rounded-lg hover:bg-gray-100 transition">
+							<button className="px-4 py-1 bg-white text-text border border-seagreen rounded-lg hover:bg-gray-100 transition">
 								Sign Up
 							</button>
 						</Link>

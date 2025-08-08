@@ -41,27 +41,8 @@ function Landing() {
 	const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
 	const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
 	const filterRef = useRef<HTMLDivElement>(null);
-
 	const [lines, setLines] = useState<Line[] | null>([]);
-	const [leagues, setLeagues] = useState<string[]>([]);
-	const [books, setBooks] = useState<string[]>([]);
-	const [propTypes, setPropTypes] = useState<string[]>([]);
-
-	const [league, setLeague] = useState<string | undefined>(undefined);
-	const [sportsbook, setSportsbook] = useState<string | undefined>(undefined);
-	const [propType, setPropType] = useState<string | undefined>(undefined);
-
 	const [watchlistItems, setWatchlistItems] = useState<number[]>([]);
-
-	const handleSportsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		const values = Array.from(e.target.selectedOptions, (option) => option.value);
-		setSelectedLeagues(values);
-	};
-
-	const handleBooksChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		const values = Array.from(e.target.selectedOptions, (option) => option.value);
-		setSelectedBooks(values);
-	};
 
 	const handleRefreshOdds = async () => {
 		try {
@@ -135,7 +116,7 @@ function Landing() {
 	}, []);
 
 	return (
-		<section className="p-4 max-w-7xl mx-auto ">
+		<section className="p-4 max-w-7xl mx-auto flex-grow">
 			<div className="flex justify-between">
 				<h2 className="text-lg font-semibold mb-4">Top Value Bets</h2>
 
@@ -147,42 +128,7 @@ function Landing() {
 					<button className="bg-sage-500 text-black px-4 py-2 rounded hover:bg-sage-400" onClick={handleRefreshOdds}>
 						Refresh Odds
 					</button>
-					{/* <div className="flex gap-4 relative" ref={filterRef}>
-						{showFilters && (
-							<div className="absolute left-0 top-12 mt-2 w-64 bg-white border rounded shadow-md p-4 z-50">
-								<h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
-
-								<div className="flex flex-col gap-4">
-									<div>
-										<label className="block text-sm text-gray-600 mb-1">Sports</label>
-										<select
-											multiple
-											className="w-full h-24 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-											value={selectedLeagues}
-											onChange={handleSportsChange}
-										>
-											<option value="nfl">NFL</option>
-										</select>
-									</div>
-
-									<div>
-										<label className="block text-sm text-gray-600 mb-1">Sportsbooks</label>
-										<select
-											multiple
-											className="w-full h-24 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-											value={selectedBooks}
-											onChange={handleBooksChange}
-										>
-											<option value="Pinnacle">Pinnacle</option>
-										</select>
-									</div>
-								</div>
-							</div>
-						)}
-						<button onClick={() => setShowFilters(!showFilters)} className="text-jet hover:text-jet-600 transition" title="Filters">
-							<FaFilter className="w-5 h-5" />
-						</button>
-					</div> */}
+					
 				</div>
 			</div>
 			<div className="overflow-x-auto">
@@ -242,7 +188,7 @@ function Landing() {
 						</tr>
 					</tbody>
 				</table>
-				<table className="w-full text-sm text-left border">
+				{/* <table className="w-full text-sm text-left border">
 					<thead className="bg-gray-200">
 						<tr>
 							<th className="p-2">Line ID</th>
@@ -283,74 +229,10 @@ function Landing() {
 							</tr>
 						))}
 					</tbody>
-				</table>
+				</table> */}
 			</div>
 		</section>
 	);
 }
 
 export default Landing;
-
-/* <section className="mb-6 bg-white p-4 rounded shadow">
-				<h2 className="text-lg font-semibold mb-2">Filters</h2>
-				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-					<select value={league} onChange={(e) => setLeague(e.target.value)} className="w-full border p-2 rounded">
-						<option value="">All Leagues</option>
-						{leagues.map((sport, i) => (
-							<option key={i} value={sport}>
-								{sport}
-							</option>
-						))}
-					</select>
-
-					<select className="w-full border p-2 rounded">
-						<option value="">All Books</option>
-						{books.map((book, i) => (
-							<option key={i} value={book}>
-								{book}
-							</option>
-						))}
-					</select>
-
-					<select className="w-full border p-2 rounded">
-						<option value="">Market Type</option>
-						{propTypes.map((type, i) => (
-							<option key={i} value={type}>
-								{type}
-							</option>
-						))}
-					</select>
-					<input type="number" placeholder="Min Edge %" className="w-full border p-2 rounded" />
-				</div>
-			</section> */
-
-// useEffect(() => {
-// 	const fetchFilters = async () => {
-// 		const [sportsRes, booksRes, marketsRes] = await Promise.all([
-// 			fetch("https://localhost:7105/filters/sports"),
-// 			fetch("https://localhost:7105/filters/sportsbooks"),
-// 			fetch("https://localhost:7105/filters/prop-types"),
-// 		]);
-// 		setLeagues(await sportsRes.json());
-// 		setBooks(await booksRes.json());
-// 		setPropTypes(await marketsRes.json());
-// 	};
-
-// 	fetchFilters();
-// }, []);
-
-// useEffect(() => {
-// 	const fetchLines = async () => {
-// 		const query = new URLSearchParams({
-// 			...(league && { league }),
-// 			...(sportsbook && { sportsbook }),
-// 			...(propType && { propType }),
-// 		}).toString();
-
-// 		const response = await fetch(`/lines?${query}`);
-// 		const data = await response.json();
-// 		setLines(data);
-// 	};
-
-// 	fetchLines();
-// }, [league, sportsbook, propType]);

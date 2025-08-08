@@ -11,9 +11,9 @@ function App() {
 	return (
 		<BrowserRouter>
 			<AuthProvider>
-				<div className="flex flex-col min-h-screen">
+				<div className="flex flex-col min-h-screen bg-background">
 					<Header />
-					<main className="flex-grow overflow-y-auto bg-white">
+					<main className="flex-grow flex flex-col overflow-y-auto">
 						<Routes>
 							<Route path="/" element={<Landing />} />
 							<Route path="/signup" element={<Signup />} />

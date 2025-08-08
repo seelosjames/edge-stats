@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EdgeStats.models
+namespace EdgeStats.Models
 {
     public class Prop
     {
@@ -22,5 +22,7 @@ namespace EdgeStats.models
 
         [MaxLength(100)]
         public string? PropType { get; set; }
-    }
+
+		public ICollection<Line> Lines { get; set; } = new List<Line>();
+	}
 }

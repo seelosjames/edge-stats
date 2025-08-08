@@ -4,8 +4,8 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				text: "#050706",
-				background: "#f3f3f3",
+				text: "#04190f",
+				background: "#f7fdfa",
 				seagreen: {
 					DEFAULT: "#2f8052",
 					100: "#091910",

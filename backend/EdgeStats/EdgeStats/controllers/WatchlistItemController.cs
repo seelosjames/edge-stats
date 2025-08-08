@@ -1,4 +1,4 @@
-﻿using EdgeStats.models;
+﻿using EdgeStats.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EdgeStats.Dtos;
