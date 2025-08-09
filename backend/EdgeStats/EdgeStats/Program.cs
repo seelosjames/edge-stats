@@ -119,4 +119,114 @@ app.MapControllers();
 //    db.Database.EnsureCreated();
 //}
 
+
+// =============================
+// 10 OPTIONAL: Prepopulate Database
+// =============================
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<EdgeStatsDbContext>();
+
+//    // Seed Leagues
+//    if (!db.Leagues.Any())
+//    {
+//        db.Leagues.AddRange(
+//			new League { LeagueCode = "NFL", LeagueName = "National Football League", Sport = "Football"},
+//			new League{LeagueCode = "NCAAF", LeagueName = "National Collegiate Athletic Association Football", Sport = "Football"}
+//		);
+//        db.SaveChanges();
+//    }
+
+//    // Seed Sportsbooks
+//    if (!db.Sportsbooks.Any())
+//    {
+//        db.Sportsbooks.AddRange(
+//            new Sportsbook { SportsbookName = "Pinnacle", SportsbookUrl = "https://www.pinnacle.com/en/" },
+//            new Sportsbook { SportsbookName = "Fliff", SportsbookUrl = "https://sports.getfliff.com/sports?channelId=-333" },
+//            new Sportsbook { SportsbookName = "Underdog", SportsbookUrl = "https://underdogfantasy.com/pick-em/higher-lower/all/home" },
+//            new Sportsbook { SportsbookName = "PrizePicks", SportsbookUrl = "https://app.prizepicks.com/board" },
+//            new Sportsbook { SportsbookName = "Betr", SportsbookUrl = "https://picks.betr.app/picks/home/lobby" }
+//        );
+//        db.SaveChanges();
+//    }
+
+//    // Seed Sportsbook URLs
+//    if (!db.SportsbookUrls.Any())
+//    {
+//        var nfl = db.Leagues.First(l => l.LeagueCode == "NFL");
+//        var ncaaf = db.Leagues.First(l => l.LeagueCode == "NCAAF");
+
+//        var pinnacle = db.Sportsbooks.First(s => s.SportsbookName == "Pinnacle");
+//        var fliff = db.Sportsbooks.First(s => s.SportsbookName == "Fliff");
+//        var underdog = db.Sportsbooks.First(s => s.SportsbookName == "Underdog");
+//        var prizepicks = db.Sportsbooks.First(s => s.SportsbookName == "PrizePicks");
+//        var betr = db.Sportsbooks.First(s => s.SportsbookName == "Betr");
+
+//        db.SportsbookUrls.AddRange(
+//            new SportsbookUrl
+//            {
+//                SportsbookId = pinnacle.SportsbookId,
+//                LeagueId = nfl.LeagueId,
+//                Url = "https://www.pinnacle.com/en/football/nfl/matchups/#all"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = pinnacle.SportsbookId,
+//                LeagueId = ncaaf.LeagueId,
+//                Url = "https://www.pinnacle.com/en/football/ncaa/matchups/#all"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = fliff.SportsbookId,
+//                LeagueId = nfl.LeagueId,
+//                Url = "https://sports.getfliff.com/sports?channelId=451"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = fliff.SportsbookId,
+//                LeagueId = ncaaf.LeagueId,
+//                Url = "https://sports.getfliff.com/sports?channelId=452"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = underdog.SportsbookId,
+//                LeagueId = nfl.LeagueId,
+//                Url = "https://underdogfantasy.com/pick-em/higher-lower/all/nfl"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = underdog.SportsbookId,
+//                LeagueId = ncaaf.LeagueId,
+//                Url = "https://underdogfantasy.com/pick-em/higher-lower/all/cfb"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = prizepicks.SportsbookId,
+//                LeagueId = nfl.LeagueId,
+//                Url = "https://app.prizepicks.com/board"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = prizepicks.SportsbookId,
+//                LeagueId = ncaaf.LeagueId,
+//                Url = "https://app.prizepicks.com/board"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = betr.SportsbookId,
+//                LeagueId = nfl.LeagueId,
+//                Url = "https://picks.betr.app/picks/home/NFL"
+//            },
+//            new SportsbookUrl
+//            {
+//                SportsbookId = betr.SportsbookId,
+//                LeagueId = ncaaf.LeagueId,
+//                Url = "https://picks.betr.app/picks/home/CFB"
+//            }
+//        );
+//        db.SaveChanges();
+//    }
+
+//}
+
 app.Run();

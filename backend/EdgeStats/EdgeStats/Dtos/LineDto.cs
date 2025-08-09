@@ -4,7 +4,7 @@
     {
         public int LineId { get; set; }
         public string Description { get; set; }
-        public decimal Odd { get; set; }
+        public double Odd { get; set; }
 
         public string? PropName { get; set; }
         public string? PropType { get; set; }

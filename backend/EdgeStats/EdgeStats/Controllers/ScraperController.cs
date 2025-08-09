@@ -18,8 +18,8 @@ namespace EdgeStats.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Scrape([FromBody] ScrapeRequestDto request)
 		{
-			//if (request.Leagues.Count == 0 || request.Sportsbooks.Count == 0)
-			//	return BadRequest("League and sportsbook must be provided.");
+			if (request.Leagues.Count == 0 || request.Sportsbooks.Count == 0)
+				return BadRequest("League and sportsbook must be provided.");
 
 			await _scraperService.ScrapeAsync(request.Leagues, request.Sportsbooks);
 

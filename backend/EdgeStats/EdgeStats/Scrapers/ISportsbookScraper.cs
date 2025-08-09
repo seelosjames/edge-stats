@@ -1,7 +1,9 @@
-﻿namespace EdgeStats.Scrapers
+﻿using EdgeStats.Models;
+
+namespace EdgeStats.Scrapers
 {
 	public interface ISportsbookScraper
 	{
-		Task ScrapeAsync(List<string> leagues);
-	}
+		Task Scrape(List<string> leagues);
+    }
 }

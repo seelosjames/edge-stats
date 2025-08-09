@@ -27,6 +27,6 @@ namespace EdgeStats.Models
 
 		[Required]
 		[Column("odd", TypeName = "decimal(8,4)")]
-		public decimal Odd { get; set; }
+		public double Odd { get; set; }
 	}
 }

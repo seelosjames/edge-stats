@@ -17,30 +17,22 @@ namespace EdgeStats.Services
 
 			await RemoveOldGamesAsync();
 
-			if (sportsbooks.Count == 0)
-			{
-				ISportsbookScraper? scraper = new TestScraper(_dbContext);
-                await scraper.ScrapeAsync(leagues);
-			}
-            else
+            foreach (var sportsbook in sportsbooks)
             {
-                foreach (var sportsbook in sportsbooks)
+                ISportsbookScraper? scraper = sportsbook.ToLower() switch
                 {
-                    ISportsbookScraper? scraper = sportsbook.ToLower() switch
-                    {
-                        "pinnacle" => new PinnacleScraper(_dbContext),
-                        // "fliff" => new FliffScraper(_db),
-                        _ => null
-                    };
+                    "pinnacle" => new PinnacleScraper(_dbContext, "Pinnacle"),
+                    // "fliff" => new FliffScraper(_db),
+                    _ => null
+                };
 
-                    if (scraper == null)
-                    {
-                        Console.WriteLine($"No scraper found for: {sportsbook}");
-                        continue;
-                    }
-
-                    await scraper.ScrapeAsync(leagues);
+                if (scraper == null)
+                {
+                    Console.WriteLine($"No scraper found for: {sportsbook}");
+                    continue;
                 }
+                
+				await scraper.Scrape(leagues);
             }
 		}
 

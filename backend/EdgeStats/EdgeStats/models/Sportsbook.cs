@@ -8,8 +8,13 @@ namespace EdgeStats.Models
         [Key]
         public int SportsbookId { get; set; }
 
-        [Required]
-        [MaxLength(255)]
+        [Required, MaxLength(255)]
         public string? SportsbookName { get; set; }
+
+        [Required, MaxLength(255)]
+        public string? SportsbookUrl { get; set; }
+
+        public ICollection<SportsbookUrl> SportsbookUrls { get; set; } = new List<SportsbookUrl>();
+        public ICollection<GameUrl> GameUrls { get; set; } = new List<GameUrl>();
     }
 }

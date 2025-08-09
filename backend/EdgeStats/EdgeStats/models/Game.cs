@@ -31,10 +31,9 @@ namespace EdgeStats.Models
 		[Required]
 		public DateTime GameDateTime { get; set; }
 
-		public enum GameStatus { Scheduled, InProgress, Completed, Cancelled }
-		[Required]
-		public GameStatus Status { get; set; } = GameStatus.Scheduled;
-
 		public ICollection<Prop> Props { get; set; } = new List<Prop>();
-	}
+
+        public ICollection<GameUrl> GameUrls { get; set; } = new List<GameUrl>();
+
+    }
 }

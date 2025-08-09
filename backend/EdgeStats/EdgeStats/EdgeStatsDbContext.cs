@@ -14,7 +14,9 @@ namespace EdgeStats
 		public DbSet<Team> Teams { get; set; }
 		public DbSet<League> Leagues { get; set; }
 		public DbSet<Sportsbook> Sportsbooks { get; set; }
-		public DbSet<WatchlistItem> WatchlistItems { get; set; }
+        public DbSet<SportsbookUrl> SportsbookUrls { get; set; }
+        public DbSet<GameUrl> GameUrls { get; set; }
+        public DbSet<WatchlistItem> WatchlistItems { get; set; }
 		public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)

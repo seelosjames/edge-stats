@@ -38,8 +38,8 @@ export function getStartsInString(dateTimeStr: Date) {
 
 function Landing() {
 	const [showFilters, setShowFilters] = useState(false);
-	const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
-	const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
+	const [selectedLeagues, setSelectedLeagues] = useState<string[]>(["NFL"]);
+	const [selectedBooks, setSelectedBooks] = useState<string[]>(["Pinnacle"]);
 	const filterRef = useRef<HTMLDivElement>(null);
 	const [lines, setLines] = useState<Line[] | null>([]);
 	const [watchlistItems, setWatchlistItems] = useState<number[]>([]);
@@ -47,8 +47,8 @@ function Landing() {
 	const handleRefreshOdds = async () => {
 		try {
 			const response = await axios.post("https://localhost:7105/scraper", {
-				Leagues: selectedLeagues,
-				Sportsbooks: selectedBooks,
+				leagues: selectedLeagues,
+				sportsbooks: selectedBooks,
 			});
 
 			const { recordsSaved, sourceCount, sportCount } = response.data;

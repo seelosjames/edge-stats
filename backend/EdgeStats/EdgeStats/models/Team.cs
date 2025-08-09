@@ -11,7 +11,7 @@ namespace EdgeStats.Models
 
 		[Required]
 		[MaxLength(255)]
-		public string? TeamName { get; set; }
+		public string TeamName { get; set; }
 
 		[Required]
 		[ForeignKey("League")]

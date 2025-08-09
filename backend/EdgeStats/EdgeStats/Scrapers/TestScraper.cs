@@ -9,7 +9,7 @@ namespace EdgeStats.Scrapers
         {
             _db = dbContext;
         }
-        public async Task ScrapeAsync(List<string> leagues)
+        public async Task Scrape(List<string> leagues)
         {
             await _db.SaveChangesAsync();
         }
