@@ -1,5 +1,6 @@
 ﻿using EdgeStats.Dtos;
 using EdgeStats.Models;
+using EdgeStats.Services;
 using EdgeStats.Utils.Mappings;
 using EdgeStats.Utils.Parsing;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +16,14 @@ namespace EdgeStats.Scrapers
 	{
 		private readonly EdgeStatsDbContext _dbContext;
         private readonly Sportsbook _sportsbook;
+        private readonly ScraperService _scraperService;
 
 
-        public PinnacleScraper(EdgeStatsDbContext dbContext, String sportsbook)
+        public PinnacleScraper(EdgeStatsDbContext dbContext, String sportsbook, ScraperService scraperService)
 		{
 			_dbContext = dbContext;
             _sportsbook = _dbContext.Sportsbooks.First(s => s.SportsbookName == sportsbook);
+            _scraperService = scraperService;
 		}
 
         public async Task Scrape(List<string> leagues)
@@ -238,88 +241,28 @@ namespace EdgeStats.Scrapers
 						GameUuid = gameUuid
 					});
 				}
-
+                Console.WriteLine(gamesFound);
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error while processing link {url}: {ex.Message}");
 			}
 
-            // Load all teams for the league once, key by lower case name
-            var existingTeams = _dbContext.Teams
-                .Where(t => t.LeagueId == league.LeagueId)
-                .ToDictionary(t => t.TeamName.ToLowerInvariant());
 
-            // Load all existing games for the league once, key by GameUuid
-            var existingGames = _dbContext.Games
-                .Include(g => g.GameUrls)
-                .Where(g => g.LeagueId == league.LeagueId)
-                .ToDictionary(g => g.GameUuid);
-
-            var newTeams = new List<Team>();
-            var newGames = new List<Game>();
+            List<Team> newTeams = new List<Team>();
+            List<Game> newGames = new List<Game>();
 
             foreach (var scrapedGame in gamesFound)
             {
-				// Normalize team names to lower invariant for dictionary key
-				string team1Key = scrapedGame.Team1;
-				string team2Key = scrapedGame.Team2;
+                List<Team> scrapedTeams = _scraperService.InsertTeams([scrapedGame.Team1, scrapedGame.Team2], league, newTeams);
 
-                if (!existingTeams.TryGetValue(team1Key, out var team1))
-                {
-                    team1 = new Team { TeamName = scrapedGame.Team1, LeagueId = league.LeagueId };
-                    existingTeams[team1Key] = team1;
-                    newTeams.Add(team1);
-                }
-
-                if (!existingTeams.TryGetValue(team2Key, out var team2))
-                {
-                    team2 = new Team { TeamName = scrapedGame.Team2, LeagueId = league.LeagueId };
-                    existingTeams[team2Key] = team2;
-                    newTeams.Add(team2);
-                }
-
-                if (!existingGames.TryGetValue(scrapedGame.GameUuid, out var game))
-                {
-                    game = new Game
-                    {
-                        GameUuid = scrapedGame.GameUuid,
-                        LeagueId = league.LeagueId,
-                        Team1 = team1,
-                        Team2 = team2,
-                        GameDateTime = scrapedGame.GameTime,
-                        GameUrls = new List<GameUrl>
-                {
-                    new GameUrl
-                    {
-                        SportsbookId = scrapedGame.GameUrl.SportsbookId,
-                        GameUrlValue = scrapedGame.GameUrl.GameUrl
-                    }
-                }
-                    };
-                    existingGames[scrapedGame.GameUuid] = game;
-                    newGames.Add(game);
-                }
-                else
-                {
-                    // Optional: update existing game info (date/time or URLs) if changed
-                    game.GameDateTime = scrapedGame.GameTime;
-                    if (!game.GameUrls.Any(gu => gu.GameUrlValue == scrapedGame.GameUrl.GameUrl))
-                    {
-                        game.GameUrls.Add(new GameUrl
-                        {
-                            SportsbookId = scrapedGame.GameUrl.SportsbookId,
-                            GameUrlValue = scrapedGame.GameUrl.GameUrl
-                        });
-                    }
-                }
+                _scraperService.InsertGames(scrapedGame, league, scrapedTeams[0], scrapedTeams[1]);
             }
 
-            // Insert new teams and games in bulk
             if (newTeams.Count > 0)
             {
                 _dbContext.Teams.AddRange(newTeams);
-                _dbContext.SaveChanges(); // Save here so new teams get their IDs before games reference them
+                _dbContext.SaveChanges();
             }
 
             if (newGames.Count > 0)
