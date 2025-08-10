@@ -131,9 +131,9 @@ app.MapControllers();
 //    if (!db.Leagues.Any())
 //    {
 //        db.Leagues.AddRange(
-//			new League { LeagueCode = "NFL", LeagueName = "National Football League", Sport = "Football"},
-//			new League{LeagueCode = "NCAAF", LeagueName = "National Collegiate Athletic Association Football", Sport = "Football"}
-//		);
+//            new League { LeagueCode = "NFL", LeagueName = "National Football League", Sport = "Football" },
+//            new League { LeagueCode = "NCAAF", LeagueName = "National Collegiate Athletic Association Football", Sport = "Football" }
+//        );
 //        db.SaveChanges();
 //    }
 
@@ -226,7 +226,6 @@ app.MapControllers();
 //        );
 //        db.SaveChanges();
 //    }
-
 //}
 
 app.Run();

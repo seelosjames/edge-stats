@@ -12,7 +12,7 @@ type Line = {
 	team1: string;
 	team2: string;
 	gameDateTime: Date;
-	gameStatus: string | null;
+	league: string;
 };
 
 type WatchlistItem = {
@@ -107,6 +107,7 @@ function Landing() {
 			try {
 				const response = await axios.get<Line[]>("https://localhost:7105/lines");
 				setLines(response.data);
+				console.log(lines)
 			} catch (error) {
 				console.error("Error fetching lines:", error);
 			}
@@ -128,7 +129,6 @@ function Landing() {
 					<button className="bg-sage-500 text-black px-4 py-2 rounded hover:bg-sage-400" onClick={handleRefreshOdds}>
 						Refresh Odds
 					</button>
-					
 				</div>
 			</div>
 			<div className="overflow-x-auto">
@@ -145,91 +145,24 @@ function Landing() {
 							<th className="px-4 py-2">Edge</th>
 						</tr>
 					</thead>
+
 					<tbody className="divide-y divide-gray-200 bg-white">
-						<tr key="{0}" className="hover:bg-gray-50">
-							<td className="px-4 py-2 text-center">★</td>
-							<td className="px-4 py-2">Colts vs. Patriots</td>
-							<td className="px-4 py-2">NFL</td>
-							<td className="px-4 py-2">Game Moneyline</td>
-							<td className="px-4 py-2">Colts</td>
-							<td className="px-4 py-2">Fliff</td>
-							<td className="px-4 py-2">+110</td>
-							<td className="px-4 py-2 text-green-600 font-medium">+4.2%</td>
-						</tr>
-						<tr key="{1}" className="hover:bg-gray-50">
-							<td className="px-4 py-2 text-center">★</td>
-							<td className="px-4 py-2">Jaguars vs. Titans</td>
-							<td className="px-4 py-2">NFL</td>
-							<td className="px-4 py-2">Trevor Lawrence pass yds</td>
-							<td className="px-4 py-2">Over 225.5</td>
-							<td className="px-4 py-2">Underdog</td>
-							<td className="px-4 py-2">-115</td>
-							<td className="px-4 py-2 text-green-600 font-medium">+2.8%</td>
-						</tr>
-						<tr key="{2}" className="hover:bg-gray-50">
-							<td className="px-4 py-2 text-center">★</td>
-							<td className="px-4 py-2">Stanford vs. Hawaii</td>
-							<td className="px-4 py-2">NCAAF</td>
-							<td className="px-4 py-2">Game Spread</td>
-							<td className="px-4 py-2">Stanford -1.5</td>
-							<td className="px-4 py-2">Fliff</td>
-							<td className="px-4 py-2">-120</td>
-							<td className="px-4 py-2 text-green-600 font-medium">+3.5%</td>
-						</tr>
-						<tr key="{3}" className="hover:bg-gray-50">
-							<td className="px-4 py-2 text-center">★</td>
-							<td className="px-4 py-2">49ers vs. Packers</td>
-							<td className="px-4 py-2">NFL</td>
-							<td className="px-4 py-2">First Quarter Total</td>
-							<td className="px-4 py-2">Over 9.5</td>
-							<td className="px-4 py-2">Prize Picks</td>
-							<td className="px-4 py-2">+105</td>
-							<td className="px-4 py-2 text-green-600 font-medium">+1.9%</td>
-						</tr>
-					</tbody>
-				</table>
-				{/* <table className="w-full text-sm text-left border">
-					<thead className="bg-gray-200">
-						<tr>
-							<th className="p-2">Line ID</th>
-							<th className="p-2">Matchup</th>
-							<th className="p-2">Sportsbook</th>
-							<th className="p-2">Prop Name</th>
-							<th className="p-2">Prop Type</th>
-							<th className="p-2">Description</th>
-							<th className="p-2">Odds</th>
-							<th className="p-2">Starts In</th>
-							<th className="p-2"></th>
-						</tr>
-					</thead>
-					<tbody className="divide-y">
 						{lines?.map((line) => (
-							<tr key={line.lineId}>
-								<td className="p-2">{line.lineId}</td>
-								<td className="p-2">
+							<tr key={line.lineId} className="hover:bg-gray-50">
+								<td className="px-4 py-2 text-center">★</td>
+								<td className="px-4 py-2">
 									{line.team1} vs. {line.team2}
 								</td>
-								<td className="p-2">{line.sportsbookName}</td>
-								<td className="p-2">{line.propName}</td>
-								<td className="p-2">{line.propType}</td>
-								<td className="p-2">{line.description}</td>
-								<td className="p-2">{line.odd}</td>
-								<td className="p-2">{getStartsInString(line.gameDateTime)}</td>
-								<td className="p-2 text-center">
-									<button
-										onClick={() => handleStarClick(line.lineId)}
-										className={`text-2xl ${
-											watchlistItems.includes(line.lineId) ? "text-yellow-500" : "text-gray-300 hover:text-yellow-500"
-										}`}
-										aria-label="Favorite"
-									>
-										★
-									</button>
-								</td>
+								<td className="px-4 py-2">{line.league}</td>
+								<td className="px-4 py-2">{line.propName}</td>
+								<td className="px-4 py-2">{line.description}</td>
+								<td className="px-4 py-2">{line.sportsbookName}</td>
+								<td className="px-4 py-2">{line.odd}</td>
+								<td className="px-4 py-2 text-green-600 font-medium">TBD</td>
 							</tr>
 						))}
 					</tbody>
-				</table> */}
+				</table>
 			</div>
 		</section>
 	);

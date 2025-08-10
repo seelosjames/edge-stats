@@ -21,7 +21,7 @@ namespace EdgeStats.Controllers
 			if (request.Leagues.Count == 0 || request.Sportsbooks.Count == 0)
 				return BadRequest("League and sportsbook must be provided.");
 
-			await _scraperService.ScrapeAsync(request.Leagues, request.Sportsbooks);
+			await _scraperService.ScrapeAsync(request.Leagues, request.Sportsbooks, _scraperService);
 
 			return Ok(new { message = "Scrape complete" });
 		}

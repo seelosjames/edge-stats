@@ -30,13 +30,10 @@ namespace EdgeStats.Scrapers
         {
             foreach (var leagueCode in leagues)
             {
-                // Load league and url for sportsbook
                 League league = await _dbContext.Leagues.FirstAsync(l => l.LeagueCode == leagueCode);
                 var sportsbookUrl = await _dbContext.SportsbookUrls
                     .FirstAsync(su => su.LeagueId == league.LeagueId && su.SportsbookId == _sportsbook.SportsbookId);
 
-
-                // Setup Selenium driver once per league (optional: reuse if you want)
                 var chromeOptions = new ChromeOptions();
                 chromeOptions.AddArgument("--no-sandbox");
                 chromeOptions.AddArgument("--disable-dev-shm-usage");
@@ -45,8 +42,8 @@ namespace EdgeStats.Scrapers
 
                 using var driver = new ChromeDriver(chromeOptions);
                 var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                
-				// Scrape games and upsert teams + games
+
+
                 var scrapedGames = GetPinnacleGames(driver, wait, sportsbookUrl.Url, _sportsbook, league);
 
                 // 2. Fetch the saved Game entities to use for GetPinnacleProps
@@ -56,6 +53,15 @@ namespace EdgeStats.Scrapers
                     .Include(g => g.Props).ThenInclude(p => p.Lines)
                     .Where(g => gameUuids.Contains(g.GameUuid))
                     .ToList();
+
+
+                Console.WriteLine($"Scraped games count: {scrapedGames.Count}");
+                foreach (var uuid in gameUuids)
+                {
+                    Console.WriteLine($"Scraped GameUuid: {uuid}");
+                }
+
+                Console.WriteLine($"Games in DB matching: {gamesFromDb.Count}");
 
                 foreach (var game in gamesFromDb)
                 {
@@ -73,7 +79,6 @@ namespace EdgeStats.Scrapers
                     {
                         if (!existingProps.TryGetValue(sp.PropUuid, out var existingProp))
                         {
-                            // New prop - add it
                             propsToAdd.Add(new Prop
                             {
                                 PropUuid = sp.PropUuid,
@@ -85,7 +90,6 @@ namespace EdgeStats.Scrapers
                         }
                         else
                         {
-                            // Optional update of existing prop fields if changed
                             bool isModified = false;
                             if (existingProp.PropName != sp.PropName)
                             {
@@ -104,19 +108,16 @@ namespace EdgeStats.Scrapers
                         }
                     }
 
-                    // Add new props and save to get IDs for foreign keys
                     if (propsToAdd.Any())
                     {
                         _dbContext.Props.AddRange(propsToAdd);
                         _dbContext.SaveChanges();
                     }
 
-                    // Refresh existingProps dictionary with any newly added props
                     existingProps = _dbContext.Props
                         .Where(p => propUuids.Contains(p.PropUuid))
                         .ToDictionary(p => p.PropUuid);
 
-                    // Bulk fetch existing lines by UUID
                     var lineUuids = scrapedLines.Select(sl => sl.LineUuid).ToList();
                     var existingLines = _dbContext.Lines
                         .Where(l => lineUuids.Contains(l.LineUuid))
@@ -128,7 +129,15 @@ namespace EdgeStats.Scrapers
                     {
                         if (!existingLines.TryGetValue(sl.LineUuid, out var existingLine))
                         {
-                            // New line - add it
+                            if (!existingProps.ContainsKey(sl.PropUuid))
+                            {
+                                Console.WriteLine(
+                                    $"[WARNING] Missing PropUuid {sl.PropUuid} for line {sl.LineUuid} ({sl.Description}). " +
+                                    $"SportsbookId: {_sportsbook.SportsbookId}"
+                                );
+                                continue; // Avoid KeyNotFoundException
+                            }
+
                             linesToAdd.Add(new Line
                             {
                                 LineUuid = sl.LineUuid,
@@ -140,7 +149,6 @@ namespace EdgeStats.Scrapers
                         }
                         else
                         {
-                            // Optional update of existing line fields if changed
                             bool isModified = false;
                             if (existingLine.Description != sl.Description)
                             {
@@ -167,10 +175,7 @@ namespace EdgeStats.Scrapers
                     _dbContext.SaveChanges();
                 }
 
-                // Save all changes after processing this league
                 await _dbContext.SaveChangesAsync();
-
-                // Dispose driver here at end of league processing
                 driver.Quit();
             }
         }
@@ -241,22 +246,25 @@ namespace EdgeStats.Scrapers
 						GameUuid = gameUuid
 					});
 				}
-                Console.WriteLine(gamesFound);
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error while processing link {url}: {ex.Message}");
 			}
 
-
             List<Team> newTeams = new List<Team>();
             List<Game> newGames = new List<Game>();
 
             foreach (var scrapedGame in gamesFound)
             {
-                List<Team> scrapedTeams = _scraperService.InsertTeams([scrapedGame.Team1, scrapedGame.Team2], league, newTeams);
+                List<string> teamNames = new List<string> { scrapedGame.Team1, scrapedGame.Team2 };
+                List<Team> scrapedTeams = _scraperService.InsertTeams(teamNames, league, newTeams);
 
-                _scraperService.InsertGames(scrapedGame, league, scrapedTeams[0], scrapedTeams[1]);
+                var createdGames = _scraperService.InsertGames(scrapedGame, league, scrapedTeams[0], scrapedTeams[1]);
+                if (createdGames != null && createdGames.Any())
+                {
+                    newGames.AddRange(createdGames);
+                }
             }
 
             if (newTeams.Count > 0)
@@ -286,8 +294,7 @@ namespace EdgeStats.Scrapers
                 {
                     Console.WriteLine($"No URL found for sportsbook {_sportsbook.SportsbookName} on game {game.GameId}");
                     return (scrapedProps, scrapedLines);
-                }
-
+                }   
                 driver.Navigate().GoToUrl(url);
 
                 var showAllButton = wait.Until(driver =>
@@ -328,7 +335,15 @@ namespace EdgeStats.Scrapers
 
                         string propName = Normalizer.NormalizeFromMapping(title["prop_name"], Mapping.PropNameMapping);
                         string propType = title["prop_type"];
-                        Guid propUuid = IdHelper.GeneratePropUuid(propName, propType, game.GameId); // <-- pass real GameId
+                        Guid propUuid = IdHelper.GeneratePropUuid(propName, propType, game.GameId);
+                        if (propUuid == Guid.Empty)
+                        {
+                            Console.WriteLine($"[DEBUG] Empty PropUuid for propName='{propName}', propType='{propType}', gameId='{game.GameId}'");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[DEBUG] Generated PropUuid {propUuid} for {propName} ({propType}) in game {game.GameId}");
+                        }
 
                         var prop = new ScrapedPropDto
                         {
@@ -363,6 +378,8 @@ namespace EdgeStats.Scrapers
 
                         scrapedProps.Add(prop);
                         scrapedLines.AddRange(lines);
+
+
                     }
                 }
             }
@@ -407,10 +424,15 @@ namespace EdgeStats.Scrapers
 
                 double odd = OddsConverter.DecimalToPercentage(double.Parse(lineInfo[1].Text));
                 Guid lineUuid = IdHelper.GenerateLineUuid(prop.PropUuid, description, _sportsbook.SportsbookName);
+                if (lineUuid == Guid.Empty)
+                {
+                    Console.WriteLine($"Warning: Generated empty lineUuid for propUuid='{prop.PropUuid}', description='{description}'");
+                }
 
                 var line = new ScrapedLineDto
                 {
                     LineUuid = lineUuid,
+                    PropUuid = prop.PropUuid,
                     Odd = odd,
                     Description = StringParser.PinnacleParseLineDesc(description),
                     Sportsbook = _sportsbook.SportsbookName

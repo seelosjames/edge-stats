@@ -14,7 +14,7 @@ namespace EdgeStats.Services
 			_dbContext = dbContext;
 		}
 
-		public async Task ScrapeAsync(List<string> leagues, List<string> sportsbooks)
+		public async Task ScrapeAsync(List<string> leagues, List<string> sportsbooks, ScraperService scraperService)
 		{
 
 			await RemoveOldGamesAsync();
@@ -23,7 +23,7 @@ namespace EdgeStats.Services
             {
                 ISportsbookScraper? scraper = sportsbook.ToLower() switch
                 {
-                    "pinnacle" => new PinnacleScraper(_dbContext, "Pinnacle"),
+                    "pinnacle" => new PinnacleScraper(_dbContext, "Pinnacle", scraperService),
                     // "fliff" => new FliffScraper(_db),
                     _ => null
                 };
@@ -65,8 +65,8 @@ namespace EdgeStats.Services
             return teamList;
         }
 
-        public void InsertGames(ScrapedGameDto scrapedGame, League league, Team team1, Team team2)
-		{
+        public List<Game> InsertGames(ScrapedGameDto scrapedGame, League league, Team team1, Team team2)
+        {
             var newGames = new List<Game>();
 
             var existingGames = _dbContext.Games
@@ -84,13 +84,13 @@ namespace EdgeStats.Services
                     Team2 = team2,
                     GameDateTime = scrapedGame.GameTime,
                     GameUrls = new List<GameUrl>
-                        {
-                            new GameUrl
-                            {
-                                SportsbookId = scrapedGame.GameUrl.SportsbookId,
-                                GameUrlValue = scrapedGame.GameUrl.GameUrl
-                            }
-                        }
+            {
+                new GameUrl
+                {
+                    SportsbookId = scrapedGame.GameUrl.SportsbookId,
+                    GameUrlValue = scrapedGame.GameUrl.GameUrl
+                }
+            }
                 };
                 existingGames[scrapedGame.GameUuid] = game;
                 newGames.Add(game);
@@ -107,9 +107,10 @@ namespace EdgeStats.Services
                     });
                 }
             }
+            return newGames;
         }
 
-		private async Task RemoveOldGamesAsync()
+        private async Task RemoveOldGamesAsync()
 		{
 			var cutoff = DateTime.UtcNow;
 			var oldGames = await _dbContext.Games
