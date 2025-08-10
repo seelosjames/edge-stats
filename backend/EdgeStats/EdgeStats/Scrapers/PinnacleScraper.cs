@@ -213,13 +213,16 @@ namespace EdgeStats.Scrapers
 						d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[2]/div/span"))
 					).Text;
 
-					DateTime dateTimeObj = DateTime.ParseExact(
-						dateTimeStr,
-						"dddd, MMMM d, yyyy 'at' HH:mm",
-						CultureInfo.InvariantCulture
-					);
+                    DateTime dateTimeObj = DateTime.ParseExact(
+                        dateTimeStr,
+                        "dddd, MMMM d, yyyy 'at' HH:mm",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeLocal // or AssumeUniversal if appropriate
+                    );
 
-					var gameUuid = IdHelper.GenerateGameUuid(team1, team2, dateTimeObj);
+                    dateTimeObj = DateTime.SpecifyKind(dateTimeObj.ToUniversalTime(), DateTimeKind.Utc);
+
+                    var gameUuid = IdHelper.GenerateGameUuid(team1, team2, dateTimeObj);
 
 					gamesFound.Add(new ScrapedGameDto
 					{
