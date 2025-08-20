@@ -10,11 +10,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from datetime import datetime, timedelta
 import time
 
-from database.db import *
-from scraping.helper import *
-from betting.betting import *
-
-
 def fliff_parse_string(term):
     parts = term.split(" - ", 1)  # Split at the first " - "
     return parts if len(parts) == 2 else (term, None)
