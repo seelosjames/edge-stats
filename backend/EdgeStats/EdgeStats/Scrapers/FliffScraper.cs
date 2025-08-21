@@ -1,42 +1,36 @@
 ﻿
+using EdgeStats.Models;
+using Microsoft.EntityFrameworkCore;
 using OpenQA.Selenium;
+using OpenQA.Selenium;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
-using OpenQA.Selenium.Support.UI;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using System.Collections.Generic;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;  // For WebDriverWait
 using OpenQA.Selenium.Interactions; // For Actions
+using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium.Support.UI;  // For WebDriverWait
 using System;
+using System.Collections.Generic;
 using System.Collections.Generic;   // For Dictionary
 using System.Globalization;         // For DateTime.ParseExact
 using System.Linq;                  // For LINQ queries if needed
 using System.Threading;
-using EdgeStats.Models;
 
 namespace EdgeStats.Scrapers
 {
     public class FliffScraper : ISportsbookScraper
     {
-        public Task Scrape(List<string> leagues)
+		public async Task Scrape(List<string> leagues)
         {
             var options = new ChromeOptions();
+            options.EnableMobileEmulation("iPhone 12 Pro");
+            IWebDriver driver = new ChromeDriver(options);
+			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
-            // enable mobile emulation with a specific device
-            var mobileEmulation = new Dictionary<string, string>
-{
-    { "deviceName", "iPhone 12 Pro" }
-};
-            options.EnableMobileEmulation(mobileEmulation);
-
-            // create driver with options
-            IWebDriver driver = new ChromeDriver(options);+
-
-
-        }
+			driver.Quit();
+		}
 
         public void GetFliffGames(ChromeDriver driver, WebDriverWait wait, string url, Sportsbook sportsbook, League league)
         {
