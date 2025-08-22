@@ -57,7 +57,7 @@ namespace EdgeStats.Scrapers
                         string date = game.FindElement(By.XPath("div[2]/div[1]/div[1]/div/span[1]")).Text;
                         string time = game.FindElement(By.XPath("div[2]/div[1]/div[1]/div/span[2]")).Text;
 
-                        DateTime gameTime = Helpers.FliffParseDatetime(date + " " + time);
+                        DateTime gameTime = FliffParseDateTime(date + " " + time);
 
                         string team1 = game.FindElement(By.XPath("div[2]/div[2]/div[1]/span")).Text;
                         string team2 = game.FindElement(By.XPath("div[2]/div[3]/div[1]/span")).Text;
@@ -111,5 +111,174 @@ namespace EdgeStats.Scrapers
                 driver.Quit();
             }
         }
-    }
+
+		public void GetFliffOdds(ChromeDriver driver, WebDriverWait wait, string url, string sportsbook, string league, string gameId)
+		{
+			try
+			{
+				driver.Navigate().GoToUrl(url);
+
+				var tabs = wait.Until(drv => drv.FindElements(By.ClassName("tab-filter")));
+
+				for (int i = 1; i < tabs.Count; i++)
+				{
+					string tabTitle = tabs[i].Text;
+
+					// Skip irrelevant tabs
+					if (tabTitle == "SUMMARY" || tabTitle == "BOOSTED" || tabTitle == "GAME PROPS" || tabTitle == "TEAM PROPS")
+						continue;
+
+					tabs[i].Click();
+					Thread.Sleep(1000);
+					((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, 0);");
+
+					try
+					{
+						var closedDivs = wait.Until(drv => drv.FindElements(By.ClassName("toggled-opened")));
+						foreach (var div in closedDivs)
+						{
+							var actions = new Actions(driver);
+							actions.MoveToElement(div).Perform();
+							div.Click();
+						}
+					}
+					catch (WebDriverTimeoutException)
+					{
+						Console.WriteLine("No closed divs found for this tab.");
+					}
+
+					var mainDiv = driver.FindElement(By.ClassName("more-markets"));
+					var propDivs = mainDiv.FindElements(By.XPath("div"));
+
+					foreach (var propDiv in propDivs)
+					{
+						string className = propDiv.GetAttribute("class");
+
+						if (className == "more-markets-note")
+							continue;
+
+						if (className == "more-markets-title")
+						{
+							HandlePropTitle(propDiv, tabTitle, gameId, sportsbook, league);
+						}
+						else
+						{
+							HandlePropBody(propDiv, tabTitle, gameId, sportsbook, league);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"An error occurred: {ex.Message}");
+			}
+		}
+
+		private void HandlePropTitle(IWebElement propDiv, string tabTitle, string gameId, string sportsbook, string league)
+		{
+			string propName, propType;
+
+			if (tabTitle == "GAME LINES")
+			{
+				propName = NormalizePropName(propDiv.FindElement(By.XPath("span")).Text);
+				propType = "Game";
+				// generate & save prop
+			}
+			else if (tabTitle == "PLAYER PROPS")
+			{
+				string text = propDiv.FindElement(By.XPath("span")).Text;
+				if (league == "NHL")
+				{
+					var parts = text.Split(new string[] { "PLAYER " }, StringSplitOptions.None);
+					string prop = parts.Length > 1 ? NormalizeProp(parts[1]) : NormalizeProp(parts[0]);
+					propType = "Player Prop";
+					propName = prop;
+				}
+				else // NBA
+				{
+					string prop = NormalizeProp(text.Split(' ', 2)[1]);
+					propType = "Player Prop";
+					propName = prop;
+				}
+			}
+			else if (tabTitle == "PERIODS" || tabTitle == "HALVES" || tabTitle == "QUARTERS")
+			{
+				string text = propDiv.FindElement(By.XPath("span")).Text;
+				string[] parts = league == "NHL"
+					? text.Split(new string[] { "PERIOD " }, StringSplitOptions.None)
+					: FliffParseString(text);
+
+				propName = NormalizePropName(parts.Last());
+				propType = NormalizePropType(parts.First());
+			}
+		}
+
+		private void HandlePropBody(IWebElement propDiv, string tabTitle, string gameId, string sportsbook, string league)
+		{
+			string propName = null;
+			string propType = null;
+
+			if (tabTitle == "PLAYER PROPS")
+			{
+				string playerName = propDiv.FindElement(By.XPath("p")).Text + " ";
+				string prop = "??"; // set from HandlePropTitle
+				propName = playerName + prop;
+				propType = "Player Prop";
+			}
+
+			var oddsDivs = propDiv.FindElements(By.XPath("div"));
+			foreach (var oddsDiv in oddsDivs)
+			{
+				bool locked = oddsDiv.FindElements(By.ClassName("icon-lock")).Any();
+				if (locked) continue;
+
+				var lineInfo = oddsDiv.FindElements(By.TagName("span"));
+				string description = ConvertNumberToFloat(lineInfo[0].Text).ToString();
+				double odd = AmericanToPercentage(double.Parse(lineInfo[1].Text.Replace("+", "").Trim()));
+
+				// generate line uuid, insert, etc.
+			}
+		}
+
+		private string NormalizePropName(string text) => text.Trim();
+		private string NormalizeProp(string text) => text.Trim();
+		private string NormalizePropType(string text) => text.Trim();
+		private string[] FliffParseString(string text) => text.Split(' ');
+		private double ConvertNumberToFloat(string text) => double.TryParse(text, out var d) ? d : 0;
+		private double AmericanToPercentage(double americanOdd)
+		{
+			if (americanOdd > 0)
+				return 100.0 / (americanOdd + 100.0) * 100.0;
+			else
+				return (-americanOdd) / ((-americanOdd) + 100.0) * 100.0;
+		}
+		private DateTime FliffParseDateTime(string inputStr)
+		{
+			DateTime now = DateTime.Now;
+
+			if (inputStr.Contains("at"))
+			{
+				if (inputStr.StartsWith("Today at "))
+				{
+					string timeStr = inputStr.Replace("Today at ", "");
+					DateTime parsed = DateTime.ParseExact(timeStr, "h:mm tt", CultureInfo.InvariantCulture);
+					return new DateTime(now.Year, now.Month, now.Day, parsed.Hour, parsed.Minute, 0);
+				}
+				else if (inputStr.StartsWith("Tomorrow at "))
+				{
+					string timeStr = inputStr.Replace("Tomorrow at ", "");
+					DateTime parsed = DateTime.ParseExact(timeStr, "h:mm tt", CultureInfo.InvariantCulture);
+					DateTime todayTime = new DateTime(now.Year, now.Month, now.Day, parsed.Hour, parsed.Minute, 0);
+					return todayTime.AddDays(1);
+				}
+				else
+				{
+					// Example: "Jan 5, 2025 at 7:30 PM"
+					return DateTime.ParseExact(inputStr, "MMM d, yyyy 'at' h:mm tt", CultureInfo.InvariantCulture);
+				}
+			}
+
+			throw new ArgumentException($"Unsupported date string format: {inputStr}");
+		}
+	}
 }
