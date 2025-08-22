@@ -1,5 +1,6 @@
 ﻿
 using EdgeStats.Models;
+using EdgeStats.Services;
 using Microsoft.EntityFrameworkCore;
 using OpenQA.Selenium;
 using OpenQA.Selenium;
@@ -7,6 +8,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Interactions; // For Actions
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Interactions; // For Actions
 using OpenQA.Selenium.Support.UI;
@@ -22,6 +24,18 @@ namespace EdgeStats.Scrapers
 {
     public class FliffScraper : ISportsbookScraper
     {
+
+		private readonly EdgeStatsDbContext _dbContext;
+		private readonly Sportsbook _sportsbook;
+		private readonly ScraperService _scraperService;
+
+		public FliffScraper(EdgeStatsDbContext dbContext, String sportsbook, ScraperService scraperService)
+		{
+			_dbContext = dbContext;
+			_sportsbook = _dbContext.Sportsbooks.First(s => s.SportsbookName == sportsbook);
+			_scraperService = scraperService;
+		}
+
 		public async Task Scrape(List<string> leagues)
         {
             var options = new ChromeOptions();

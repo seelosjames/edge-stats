@@ -14,18 +14,16 @@ namespace EdgeStats.Services
 			_dbContext = dbContext;
 		}
 
-		public async Task ScrapeAsync(List<string> leagues, List<string> sportsbooks, ScraperService scraperService)
+		public async Task ScrapeAsync(List<string> leagues, List<string> sportsbooks)
 		{
-
 			await RemoveOldGamesAsync();
 
             foreach (var sportsbook in sportsbooks)
             {
                 ISportsbookScraper? scraper = sportsbook.ToLower() switch
                 {
-                    "pinnacle" => new PinnacleScraper(_dbContext, "Pinnacle", scraperService),
-                    // "fliff" => new FliffScraper(_db),
-                    _ => null
+                    "pinnacle" => new PinnacleScraper(_dbContext, "Pinnacle", this),
+                     "fliff" => new FliffScraper(_dbContext, "Fliff", this),
                 };
 
                 if (scraper == null)

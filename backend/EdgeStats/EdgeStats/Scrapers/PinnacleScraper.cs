@@ -18,7 +18,6 @@ namespace EdgeStats.Scrapers
         private readonly Sportsbook _sportsbook;
         private readonly ScraperService _scraperService;
 
-
         public PinnacleScraper(EdgeStatsDbContext dbContext, String sportsbook, ScraperService scraperService)
 		{
 			_dbContext = dbContext;
