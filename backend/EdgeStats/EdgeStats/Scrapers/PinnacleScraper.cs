@@ -1,4 +1,5 @@
 ﻿using EdgeStats.Dtos;
+using EdgeStats.Interfaces;
 using EdgeStats.Models;
 using EdgeStats.Services;
 using EdgeStats.Utils.Mappings;
@@ -16,13 +17,13 @@ namespace EdgeStats.Scrapers
 	{
 		private readonly EdgeStatsDbContext _dbContext;
         private readonly Sportsbook _sportsbook;
-        private readonly ScraperService _scraperService;
+        private readonly IScraperRepository _scraperRepository;
 
-        public PinnacleScraper(EdgeStatsDbContext dbContext, String sportsbook, ScraperService scraperService)
+        public PinnacleScraper(EdgeStatsDbContext dbContext, String sportsbook, IScraperRepository scraperRepository)
 		{
 			_dbContext = dbContext;
             _sportsbook = _dbContext.Sportsbooks.First(s => s.SportsbookName == sportsbook);
-            _scraperService = scraperService;
+            _scraperRepository = scraperRepository;
 		}
 
         public async Task Scrape(List<string> leagues)

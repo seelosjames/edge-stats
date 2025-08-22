@@ -1,6 +1,6 @@
 ﻿using EdgeStats.Models;
 
-namespace EdgeStats.Scrapers
+namespace EdgeStats.Interfaces
 {
 	public interface ISportsbookScraper
 	{

@@ -1,4 +1,5 @@
 ﻿
+using EdgeStats.Interfaces;
 using EdgeStats.Models;
 using EdgeStats.Services;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,8 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions; // For Actions
-using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Interactions; // For Actions
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium.Support.UI;  // For WebDriverWait
 using System;
