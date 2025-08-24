@@ -1,7 +1,7 @@
 ﻿using EdgeStats.Dtos;
 using EdgeStats.Interfaces;
 using EdgeStats.Models;
-using EdgeStats.Services;
+using EdgeStats.Factories;
 using EdgeStats.Utils.Mappings;
 using EdgeStats.Utils.Parsing;
 using Microsoft.EntityFrameworkCore;
@@ -15,300 +15,165 @@ namespace EdgeStats.Scrapers
 {
 	public class PinnacleScraper : ISportsbookScraper
 	{
-		private readonly EdgeStatsDbContext _dbContext;
-        private readonly Sportsbook _sportsbook;
         private readonly IScraperRepository _scraperRepository;
+        private readonly Sportsbook _sportsbook;
 
-        public PinnacleScraper(EdgeStatsDbContext dbContext, String sportsbook, IScraperRepository scraperRepository)
-		{
-			_dbContext = dbContext;
-            _sportsbook = _dbContext.Sportsbooks.First(s => s.SportsbookName == sportsbook);
-            _scraperRepository = scraperRepository;
-		}
+        public PinnacleScraper(Sportsbook sportsbook, IScraperRepository scraperRepository)
+        {
+            _sportsbook = sportsbook ?? throw new ArgumentNullException(nameof(sportsbook));
+            _scraperRepository = scraperRepository ?? throw new ArgumentNullException(nameof(scraperRepository));
+        }
 
         public async Task Scrape(List<string> leagues)
         {
-            foreach (var leagueCode in leagues)
+            var driver = WebDriverFactory.CreateDriver(headless: false);
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+            try
             {
-                League league = await _dbContext.Leagues.FirstAsync(l => l.LeagueCode == leagueCode);
-                var sportsbookUrl = await _dbContext.SportsbookUrls
-                    .FirstAsync(su => su.LeagueId == league.LeagueId && su.SportsbookId == _sportsbook.SportsbookId);
-
-                var chromeOptions = new ChromeOptions();
-                chromeOptions.AddArgument("--no-sandbox");
-                chromeOptions.AddArgument("--disable-dev-shm-usage");
-                chromeOptions.AddArgument("--disable-gpu");
-                //chromeOptions.AddArgument("--headless=new");
-
-                using var driver = new ChromeDriver(chromeOptions);
-                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-
-
-                var scrapedGames = GetPinnacleGames(driver, wait, sportsbookUrl.Url, _sportsbook, league);
-
-                // 2. Fetch the saved Game entities to use for GetPinnacleProps
-                var gameUuids = scrapedGames.Select(g => g.GameUuid).ToList();
-                var gamesFromDb = _dbContext.Games
-                    .Include(g => g.GameUrls)
-                    .Include(g => g.Props).ThenInclude(p => p.Lines)
-                    .Where(g => gameUuids.Contains(g.GameUuid))
-                    .ToList();
-
-
-                Console.WriteLine($"Scraped games count: {scrapedGames.Count}");
-                foreach (var uuid in gameUuids)
+                foreach (var leagueCode in leagues)
                 {
-                    Console.WriteLine($"Scraped GameUuid: {uuid}");
+                    var league = await _scraperRepository.GetLeagueByCodeAsync(leagueCode);
+                    var sportsbookUrl = await _scraperRepository.GetSportsbookUrlAsync(league.LeagueId, _sportsbook.SportsbookId);
+
+                    var scrapedGames = GetPinnacleGames(driver, wait, sportsbookUrl.Url, _sportsbook, league);
+
+                    await _scraperRepository.SaveScrapedGamesAsync(scrapedGames, league);
+
+                    var gameUuids = scrapedGames.Select(g => g.GameUuid).ToList();
+                    var gamesFromDb = await _scraperRepository.GetGamesByUuidsAsync(gameUuids);
+
+                    foreach (var game in gamesFromDb)
+                    {
+                        var (scrapedProps, scrapedLines) = GetPinnacleProps(driver, wait, game);
+
+                        await _scraperRepository.UpsertPropsAndLinesAsync(
+                            scrapedProps,
+                            scrapedLines,
+                            _sportsbook.SportsbookId
+                        );
+                    }
                 }
-
-                Console.WriteLine($"Games in DB matching: {gamesFromDb.Count}");
-
-                foreach (var game in gamesFromDb)
-                {
-                    var (scrapedProps, scrapedLines) = GetPinnacleProps(driver, wait, game);
-
-                    // Bulk fetch existing props for this game by UUID
-                    var propUuids = scrapedProps.Select(sp => sp.PropUuid).ToList();
-                    var existingProps = _dbContext.Props
-                        .Where(p => propUuids.Contains(p.PropUuid))
-                        .ToDictionary(p => p.PropUuid);
-
-                    var propsToAdd = new List<Prop>();
-
-                    foreach (var sp in scrapedProps)
-                    {
-                        if (!existingProps.TryGetValue(sp.PropUuid, out var existingProp))
-                        {
-                            propsToAdd.Add(new Prop
-                            {
-                                PropUuid = sp.PropUuid,
-                                GameId = sp.GameId,
-                                PropName = sp.PropName,
-                                PropType = sp.PropType,
-                                Lines = new List<Line>()
-                            });
-                        }
-                        else
-                        {
-                            bool isModified = false;
-                            if (existingProp.PropName != sp.PropName)
-                            {
-                                existingProp.PropName = sp.PropName;
-                                isModified = true;
-                            }
-                            if (existingProp.PropType != sp.PropType)
-                            {
-                                existingProp.PropType = sp.PropType;
-                                isModified = true;
-                            }
-                            if (isModified)
-                            {
-                                _dbContext.Props.Update(existingProp);
-                            }
-                        }
-                    }
-
-                    if (propsToAdd.Any())
-                    {
-                        _dbContext.Props.AddRange(propsToAdd);
-                        _dbContext.SaveChanges();
-                    }
-
-                    existingProps = _dbContext.Props
-                        .Where(p => propUuids.Contains(p.PropUuid))
-                        .ToDictionary(p => p.PropUuid);
-
-                    var lineUuids = scrapedLines.Select(sl => sl.LineUuid).ToList();
-                    var existingLines = _dbContext.Lines
-                        .Where(l => lineUuids.Contains(l.LineUuid))
-                        .ToDictionary(l => l.LineUuid);
-
-                    var linesToAdd = new List<Line>();
-
-                    foreach (var sl in scrapedLines)
-                    {
-                        if (!existingLines.TryGetValue(sl.LineUuid, out var existingLine))
-                        {
-                            if (!existingProps.ContainsKey(sl.PropUuid))
-                            {
-                                Console.WriteLine(
-                                    $"[WARNING] Missing PropUuid {sl.PropUuid} for line {sl.LineUuid} ({sl.Description}). " +
-                                    $"SportsbookId: {_sportsbook.SportsbookId}"
-                                );
-                                continue; // Avoid KeyNotFoundException
-                            }
-
-                            linesToAdd.Add(new Line
-                            {
-                                LineUuid = sl.LineUuid,
-                                Description = sl.Description,
-                                Odd = sl.Odd,
-                                SportsbookId = _sportsbook.SportsbookId,
-                                PropId = existingProps[sl.PropUuid].PropId
-                            });
-                        }
-                        else
-                        {
-                            bool isModified = false;
-                            if (existingLine.Description != sl.Description)
-                            {
-                                existingLine.Description = sl.Description;
-                                isModified = true;
-                            }
-                            if (existingLine.Odd != sl.Odd)
-                            {
-                                existingLine.Odd = sl.Odd;
-                                isModified = true;
-                            }
-                            if (isModified)
-                            {
-                                _dbContext.Lines.Update(existingLine);
-                            }
-                        }
-                    }
-
-                    if (linesToAdd.Any())
-                    {
-                        _dbContext.Lines.AddRange(linesToAdd);
-                    }
-
-                    _dbContext.SaveChanges();
-                }
-
-                await _dbContext.SaveChangesAsync();
+            }
+            finally
+            {
                 driver.Quit();
             }
         }
 
         public List<ScrapedGameDto> GetPinnacleGames(ChromeDriver driver, WebDriverWait wait, string url, Sportsbook sportsbook, League league)
-		{
-			var gamesFound = new List<ScrapedGameDto>();
+        {
+            var scrapedGames = new List<ScrapedGameDto>();
 
-			try
-			{
-				driver.Navigate().GoToUrl(url);
+            try
+            {
+                driver.Navigate().GoToUrl(url);
+                var gameElements = wait.Until(d =>
+                {
+                    var elements = d.FindElements(By.XPath("//*[@id='root']/div[1]/div[2]/main/div/div[4]/div[2]/div/div"));
+                    return elements.Count > 0 ? elements : null;
+                });
 
-				var gameElements = wait.Until(d =>
-				{
-					var elements = d.FindElements(By.XPath("//*[@id='root']/div[1]/div[2]/main/div/div[4]/div[2]/div/div"));
-					return elements.Count > 0 ? elements : null;
-				});
+                var gameUrls = new List<string>();
 
-				var gameUrls = new List<String>();
+                foreach (var game in gameElements)
+                {
+                    if (game.GetAttribute("class") == "row-u9F3b9WCM3 row-k9ktBvvTsJ")
+                    {
+                        var link = game.FindElement(By.TagName("a"));
+                        gameUrls.Add(link.GetAttribute("href"));
+                    }
+                }
 
-				foreach (var game in gameElements)
-				{
-					if (game.GetAttribute("class") == "row-u9F3b9WCM3 row-k9ktBvvTsJ")
-					{
-						var link = game.FindElement(By.TagName("a"));
-						gameUrls.Add(link.GetAttribute("href"));
-					}
-				}
+                foreach (var gameUrl in gameUrls)
+                {
+                    driver.Navigate().GoToUrl(gameUrl);
 
-				foreach (String gameUrl in gameUrls)
-				{
-					driver.Navigate().GoToUrl(gameUrl);
+                    var team1 = Normalizer.NormalizeFromMapping((wait.Until(d =>
+                        d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[3]/div[2]/div/label"))
+                    ).Text), Mapping.TeamMapping);
 
-					var team1 = Normalizer.NormalizeFromMapping((wait.Until(d =>
-						d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[3]/div[2]/div/label"))
-					).Text), Mapping.TeamMapping);
+                    var team2 = Normalizer.NormalizeFromMapping((wait.Until(d =>
+                        d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label"))
+                    ).Text), Mapping.TeamMapping);
 
-					var team2 = Normalizer.NormalizeFromMapping((wait.Until(d =>
-						d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[4]/div[2]/div/label"))
-					).Text), Mapping.TeamMapping);
-
-					String dateTimeStr = wait.Until(d =>
-						d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[2]/div/span"))
-					).Text;
+                    string dateTimeStr = wait.Until(d =>
+                        d.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[1]/div[2]/div[2]/div/span"))
+                    ).Text;
 
                     DateTime dateTimeObj = DateTime.ParseExact(
                         dateTimeStr,
                         "dddd, MMMM d, yyyy 'at' HH:mm",
                         CultureInfo.InvariantCulture,
-                        DateTimeStyles.AssumeLocal // or AssumeUniversal if appropriate
+                        DateTimeStyles.AssumeLocal
                     );
 
                     dateTimeObj = DateTime.SpecifyKind(dateTimeObj.ToUniversalTime(), DateTimeKind.Utc);
 
                     var gameUuid = IdHelper.GenerateGameUuid(team1, team2, dateTimeObj);
 
-					gamesFound.Add(new ScrapedGameDto
-					{
-						LeagueId = league.LeagueId,
-						Team1 = team1,
-						Team2 = team2,
-						GameTime = dateTimeObj,
-						GameUrl = new ScrapedGameUrlDto
-						{
-							GameUrl = gameUrl,
-							SportsbookId = sportsbook.SportsbookId,
-						},
-						GameUuid = gameUuid
-					});
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error while processing link {url}: {ex.Message}");
-			}
-
-            List<Team> newTeams = new List<Team>();
-            List<Game> newGames = new List<Game>();
-
-            foreach (var scrapedGame in gamesFound)
-            {
-                List<string> teamNames = new List<string> { scrapedGame.Team1, scrapedGame.Team2 };
-                List<Team> scrapedTeams = _scraperService.InsertTeams(teamNames, league, newTeams);
-
-                var createdGames = _scraperService.InsertGames(scrapedGame, league, scrapedTeams[0], scrapedTeams[1]);
-                if (createdGames != null && createdGames.Any())
-                {
-                    newGames.AddRange(createdGames);
+                    scrapedGames.Add(new ScrapedGameDto
+                    {
+                        GameUuid = gameUuid,
+                        LeagueId = league.LeagueId,
+                        Team1 = team1,
+                        Team2 = team2,
+                        GameTime = dateTimeObj,
+                        GameUrl = new ScrapedGameUrlDto
+                        {
+                            GameUrl = gameUrl,
+                            SportsbookId = sportsbook.SportsbookId,
+                        },
+                    });
                 }
             }
-
-            if (newTeams.Count > 0)
+            catch (Exception ex)
             {
-                _dbContext.Teams.AddRange(newTeams);
-                _dbContext.SaveChanges();
+                Console.WriteLine($"Error while processing link {url}: {ex.Message}");
             }
 
-            if (newGames.Count > 0)
-            {
-                _dbContext.Games.AddRange(newGames);
-                _dbContext.SaveChanges();
-            }
+            return scrapedGames;
+        }
 
-            return gamesFound;
-		}
-
-        private (List<ScrapedPropDto> props, List<ScrapedLineDto> lines) GetPinnacleProps(ChromeDriver driver, WebDriverWait wait, Game game)
+        private (List<ScrapedPropDto> props, List<ScrapedLineDto> lines) GetPinnacleProps(
+            ChromeDriver driver,
+            WebDriverWait wait,
+            Game game)
         {
             var scrapedProps = new List<ScrapedPropDto>();
             var scrapedLines = new List<ScrapedLineDto>();
 
             try
             {
-                var url = game.GameUrls.FirstOrDefault(gurl => gurl.SportsbookId == _sportsbook.SportsbookId)?.GameUrlValue;
+                var url = game.GameUrls
+                    .FirstOrDefault(gurl => gurl.SportsbookId == _sportsbook.SportsbookId)?.GameUrlValue;
+
                 if (url == null)
                 {
-                    Console.WriteLine($"No URL found for sportsbook {_sportsbook.SportsbookName} on game {game.GameId}");
+                    Console.WriteLine(
+                        $"No URL found for sportsbook {_sportsbook.SportsbookName} on game {game.GameId}"
+                    );
                     return (scrapedProps, scrapedLines);
-                }   
+                }
+
                 driver.Navigate().GoToUrl(url);
 
-                var showAllButton = wait.Until(driver =>
+                // expand "Show All" section if available
+                var showAllButton = wait.Until(d =>
                 {
-                    var element = driver.FindElement(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[3]/div[1]/div[1]/div[1]/div/button"));
+                    var element = d.FindElement(By.XPath(
+                        "//*[@id='root']/div[1]/div[2]/main/div[3]/div[1]/div[1]/div[1]/div/button"
+                    ));
                     return element.Displayed ? element : null;
                 });
 
                 if (showAllButton.Text.Trim() != "Hide All")
                     showAllButton.Click();
 
-                var propCategoryDivs = wait.Until(driver =>
+                // all prop category containers
+                var propCategoryDivs = wait.Until(d =>
                 {
-                    var elements = driver.FindElements(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[3]/div"));
+                    var elements = d.FindElements(By.XPath("//*[@id='root']/div[1]/div[2]/main/div[3]/div"));
                     return elements.Count > 0 ? elements : null;
                 });
 
@@ -328,36 +193,32 @@ namespace EdgeStats.Scrapers
                             continue;
                         }
 
-                        var title = StringParser.PinnacleParsePropString(rawTitleText);
+                        var titleParts = StringParser.PinnacleParsePropString(rawTitleText);
 
-                        if (title.ContainsKey("message") && title["message"] == "Prop not yet supported")
+                        if (titleParts.ContainsKey("message") && titleParts["message"] == "Prop not yet supported")
                             continue;
 
-                        string propName = Normalizer.NormalizeFromMapping(title["prop_name"], Mapping.PropNameMapping);
-                        string propType = title["prop_type"];
-                        Guid propUuid = IdHelper.GeneratePropUuid(propName, propType, game.GameId);
-                        if (propUuid == Guid.Empty)
-                        {
-                            Console.WriteLine($"[DEBUG] Empty PropUuid for propName='{propName}', propType='{propType}', gameId='{game.GameId}'");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[DEBUG] Generated PropUuid {propUuid} for {propName} ({propType}) in game {game.GameId}");
-                        }
+                        string propName = Normalizer.NormalizeFromMapping(
+                            titleParts["prop_name"],
+                            Mapping.PropNameMapping
+                        );
+                        string propType = titleParts["prop_type"];
 
-                        var prop = new ScrapedPropDto
+                        Guid propUuid = IdHelper.GeneratePropUuid(propName, propType, game.GameId);
+
+                        var propDto = new ScrapedPropDto
                         {
                             PropName = propName,
                             PropType = propType,
                             PropUuid = propUuid,
-                            GameId = game.GameId,
+                            GameId = game.GameId
                         };
 
+                        // expand prop "Show more" if exists
                         try
                         {
                             var button = propDiv.FindElement(By.XPath("div[2]/button"));
-                            if (button.Text == "Show more")
-                                button.Click();
+                            if (button.Text == "Show more") button.Click();
                         }
                         catch (NoSuchElementException) { }
 
@@ -372,26 +233,29 @@ namespace EdgeStats.Scrapers
 
                         var lineDivs = propDiv.FindElements(By.ClassName("button-wrapper-Z7pE7Fol_T"));
 
-                        Console.WriteLine($"Found {prop.PropType} prop: {prop.PropName} at {_sportsbook.SportsbookName}");
+                        var lines = GetPinnacleLines(driver, wait, lineDivs, propDto, game, team1, team2);
 
-                        var lines = GetPinnacleLines(driver, wait, lineDivs, prop, game, team1, team2);
-
-                        scrapedProps.Add(prop);
+                        scrapedProps.Add(propDto);
                         scrapedLines.AddRange(lines);
-
-
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error scraping game: {ex.Message}");
+                Console.WriteLine($"Error scraping game {game.GameId}: {ex.Message}");
             }
 
             return (scrapedProps, scrapedLines);
         }
 
-        private List<ScrapedLineDto> GetPinnacleLines(ChromeDriver driver, WebDriverWait wait, IList<IWebElement> lineDivs, ScrapedPropDto prop, Game game, string? team1, string? team2)
+        private List<ScrapedLineDto> GetPinnacleLines(
+            ChromeDriver driver,
+            WebDriverWait wait,
+            IList<IWebElement> lineDivs,
+            ScrapedPropDto prop,
+            Game game,
+            string? team1,
+            string? team2)
         {
             var lines = new List<ScrapedLineDto>();
 
@@ -399,9 +263,7 @@ namespace EdgeStats.Scrapers
             {
                 var lineDiv = lineDivs[i];
                 var lineInfo = lineDiv.FindElements(By.XPath("button/span"));
-
-                if (lineInfo.Count == 0)
-                    return lines;
+                if (lineInfo.Count == 0) continue;
 
                 string description;
                 if (prop.PropType == "Player Prop")
@@ -414,6 +276,7 @@ namespace EdgeStats.Scrapers
                     description = lineInfo[0].Text;
                 }
 
+                // attach team labels if relevant
                 if (!string.IsNullOrEmpty(team1) || !string.IsNullOrEmpty(team2))
                 {
                     if (i % 2 == 0 && !string.IsNullOrEmpty(team1))
@@ -423,13 +286,10 @@ namespace EdgeStats.Scrapers
                 }
 
                 double odd = OddsConverter.DecimalToPercentage(double.Parse(lineInfo[1].Text));
-                Guid lineUuid = IdHelper.GenerateLineUuid(prop.PropUuid, description, _sportsbook.SportsbookName);
-                if (lineUuid == Guid.Empty)
-                {
-                    Console.WriteLine($"Warning: Generated empty lineUuid for propUuid='{prop.PropUuid}', description='{description}'");
-                }
 
-                var line = new ScrapedLineDto
+                Guid lineUuid = IdHelper.GenerateLineUuid(prop.PropUuid, description, _sportsbook.SportsbookName);
+
+                var lineDto = new ScrapedLineDto
                 {
                     LineUuid = lineUuid,
                     PropUuid = prop.PropUuid,
@@ -438,10 +298,9 @@ namespace EdgeStats.Scrapers
                     Sportsbook = _sportsbook.SportsbookName
                 };
 
-                Console.WriteLine($"{line.Description} at {line.Odd}");
-
-                lines.Add(line);
+                lines.Add(lineDto);
             }
+
             return lines;
         }
     }

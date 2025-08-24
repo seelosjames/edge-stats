@@ -1,5 +1,7 @@
 ﻿using EdgeStats;
+using EdgeStats.Interfaces;
 using EdgeStats.Models;
+using EdgeStats.Repositories;
 using EdgeStats.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -92,9 +94,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // =============================
-// 7️⃣ Custom Services
+// 7️⃣ Custom Services and Repositories
 // =============================
 builder.Services.AddScoped<ScraperService>();
+builder.Services.AddScoped<IScraperRepository, ScraperRepository>();
 
 var app = builder.Build();
 

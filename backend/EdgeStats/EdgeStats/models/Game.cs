@@ -32,7 +32,6 @@ namespace EdgeStats.Models
 		public DateTime GameDateTime { get; set; }
 
 		public ICollection<Prop> Props { get; set; } = new List<Prop>();
-
         public ICollection<GameUrl> GameUrls { get; set; } = new List<GameUrl>();
 
     }

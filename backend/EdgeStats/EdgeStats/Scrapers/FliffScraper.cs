@@ -1,4 +1,5 @@
 ﻿
+using EdgeStats.Factories;
 using EdgeStats.Interfaces;
 using EdgeStats.Models;
 using EdgeStats.Services;
@@ -9,6 +10,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Interactions; // For Actions
 using OpenQA.Selenium.Interactions; // For Actions
 using OpenQA.Selenium.Interactions;
@@ -39,10 +41,11 @@ namespace EdgeStats.Scrapers
 
 		public async Task Scrape(List<string> leagues)
         {
-            var options = new ChromeOptions();
-            options.EnableMobileEmulation("iPhone 12 Pro");
-            IWebDriver driver = new ChromeDriver(options);
-			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            using var driver = WebDriverFactory.CreateDriver(headless: false, configureOptions: opts =>
+            {
+                opts.EnableMobileEmulation("iPhone 12 Pro");
+            });
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
 			driver.Quit();
 		}
