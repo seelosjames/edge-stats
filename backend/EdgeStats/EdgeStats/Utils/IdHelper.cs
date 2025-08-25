@@ -6,10 +6,10 @@ namespace Scraper.Utils
 	internal class IdHelper
 	{
 
-		public static Guid GenerateGameUuid(string team1, string team2, DateTime actualTime)
+		public static Guid GenerateGameUuid(string team1, string team2, DateTime actualTime, int leagueId)
 		{
 			DateTime normalizedTime = Normalizer.NormalizeTime(actualTime);
-			string keyString = $"{team1}_{team2}_{normalizedTime:yyyyMMdd_HHmm}";
+			string keyString = $"{team1}_{team2}_{normalizedTime:yyyyMMdd_HHmm}_{leagueId}";
 			return CreateUuidFromString(keyString);
 		}
 
