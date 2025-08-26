@@ -1,5 +1,4 @@
-﻿
-using EdgeStats.Dtos;
+﻿using EdgeStats.Dtos;
 using EdgeStats.Factories;
 using EdgeStats.Interfaces;
 using EdgeStats.Models;
@@ -30,12 +29,15 @@ namespace EdgeStats.Scrapers
 				opts.EnableMobileEmulation("iPhone 12 Pro");
 			});
 			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            
 
-			try
-			{
+
+            try
+            {
+
 				foreach (var leagueCode in leagues)
 				{
-					var league = await _scraperRepository.GetLeagueByCodeAsync(leagueCode);
+                    var league = await _scraperRepository.GetLeagueByCodeAsync(leagueCode);
 					var sportsbookUrl = await _scraperRepository.GetSportsbookUrlAsync(league.LeagueId, _sportsbook.SportsbookId);
 
 					var scrapedGames = GetGames(driver, wait, sportsbookUrl.Url, _sportsbook, league);
@@ -48,12 +50,25 @@ namespace EdgeStats.Scrapers
 					{
 						var (scrapedProps, scrapedLines) = GetProps(driver, wait, game, league);
 
-						await _scraperRepository.UpsertPropsAndLinesAsync(
-							scrapedProps,
-							scrapedLines,
-							_sportsbook.SportsbookId
-						);
-					}
+                        Console.WriteLine($"Props found: {scrapedProps.Count}, Lines found: {scrapedLines.Count}");
+
+                        foreach (var prop in scrapedProps)
+                        {
+                            Console.WriteLine($"[PROP] {prop.PropUuid} | {prop.PropName} | GameUuid: {prop.GameId}");
+                        }
+
+                        foreach (var line in scrapedLines)
+                        {
+                            Console.WriteLine($"[LINE] {line.LineUuid} | {line.PropUuid} | {line.Description} @ {line.Odd}");
+                        }
+
+
+                        //await _scraperRepository.UpsertPropsAndLinesAsync(
+                        //	scrapedProps,
+                        //	scrapedLines,
+                        //	_sportsbook.SportsbookId
+                        //);
+                    }
 				}
 			}
 			finally
@@ -62,96 +77,135 @@ namespace EdgeStats.Scrapers
 			}
 		}
 
-		private List<ScrapedGameDto> GetGames(ChromeDriver driver, WebDriverWait wait, string url, Sportsbook sportsbook, League league)
-		{
-			var scrapedGames = new List<ScrapedGameDto>();
 
-			try
-			{
-				driver.Navigate().GoToUrl(url);
 
-				var games = wait.Until(d => d.FindElements(By.ClassName("card-shared-container")));
+        private List<ScrapedGameDto> GetGames(ChromeDriver driver, WebDriverWait wait, string url, Sportsbook sportsbook, League league)
+        {
+            var scrapedGames = new List<ScrapedGameDto>();
 
-				var notLive = games
-					.Select((game, index) => new { game, index })
-					.Where(g => g.game.FindElements(By.ClassName("live-bar-state")).Count == 0)
-					.ToList();
+            try
+            {
+                driver.Navigate().GoToUrl(url);
 
-				foreach (var entry in notLive)
-				{
-					var game = entry.game;
-					var index = entry.index;
+                // Handle location popup if present
+                try
+                {
+                    var locationBtn = wait.Until(d =>
+                    {
+                        var btn = d.FindElements(By.XPath("//*[@id='root']/div[1]/div/div/div/button/div/span")).FirstOrDefault();
+                        return btn != null ? btn : null;
+                    });
 
-					string date = game.FindElement(By.XPath("div[2]/div[1]/div[1]/div/span[1]")).Text;
-					string time = game.FindElement(By.XPath("div[2]/div[1]/div[1]/div/span[2]")).Text;
+                    if (locationBtn != null)
+                    {
+                        locationBtn.Click();
+                        Console.WriteLine("Location check button clicked.");
+                        Thread.Sleep(1000);
+                    }
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    Console.WriteLine("No location check popup found.");
+                }
 
-					string dateTimeStr = $"{date} {time}";
+                // ====== PHASE 1: Gather metadata ======
+                List<(int index, string team1, string team2, DateTime gameTime, Guid gameUuid)> notLive = new();
 
-					DateTime dateTimeObj = DateTime.ParseExact(
-						dateTimeStr,
-						"ddd, MMM d yyyy h:mm tt",
-						CultureInfo.InvariantCulture,
-						DateTimeStyles.AssumeLocal
-					);
-					dateTimeObj = DateTime.SpecifyKind(dateTimeObj.ToUniversalTime(), DateTimeKind.Utc);
+                List<IWebElement> games;
+                try
+                {
+                    games = wait.Until(d =>
+                    {
+                        var elements = d.FindElements(By.ClassName("card-shared-container"));
+                        return elements.Count > 0 ? elements.ToList() : null;
+                    });
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    Console.WriteLine($"No games found for {league.LeagueName} at {url}");
+                    return scrapedGames;
+                }
 
-					string team1 = game.FindElement(By.XPath("div[2]/div[2]/div[1]/span")).Text;
-					string team2 = game.FindElement(By.XPath("div[2]/div[3]/div[1]/span")).Text;
+                for (int i = 0; i < games.Count; i++)
+                {
+                    var game = games[i];
+                    bool live = game.FindElements(By.ClassName("live-bar-state")).Any();
+                    if (live) continue;
 
-					// Open the game details page
-					driver.Navigate().GoToUrl(url);
-					var gamesAgain = wait.Until(d => d.FindElements(By.ClassName("card-shared-container")));
+					string date = game.FindElement(By.XPath("div/div[1]/div[1]/div[1]/div/span[1]")).Text;
+					string time = game.FindElement(By.XPath("div/div[1]/div[1]/div[1]/div/span[2]")).Text;
 
-					var cardHeader = gamesAgain[index].FindElement(By.ClassName("card-row-header"));
-					var cardFooter = gamesAgain[index].FindElement(By.ClassName("card-regular-footer"));
+                    DateTime dateTimeObj = DateTime.ParseExact(
+                        $"{date} {time}",
+                        "MMM d, yyyy 'at' h:mm tt",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeLocal
+                    );
+                    dateTimeObj = DateTime.SpecifyKind(dateTimeObj.ToUniversalTime(), DateTimeKind.Utc);
 
-					new Actions(driver).MoveToElement(cardFooter).Perform();
+                    string team1 = game.FindElement(By.XPath("div/div[1]/div[2]/div[1]/span")).Text;
+					string team2 = game.FindElement(By.XPath("div/div[1]/div[3]/div[1]/span")).Text;
 
-					try
-					{
-						cardHeader.Click();
-					}
-					catch
-					{
-						((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", cardHeader);
-					}
+                    var gameUuid = IdHelper.GenerateGameUuid(team1, team2, dateTimeObj, league.LeagueId);
 
-					wait.Until(d => d.FindElements(By.XPath("//*[@id='root']/div[1]")));
-					string gameUrl = driver.Url;
+                    notLive.Add((i, team1, team2, dateTimeObj, gameUuid));
+                }
 
-					var gameUuid = IdHelper.GenerateGameUuid(team1, team2, dateTimeObj, league.LeagueId);
+                // ====== PHASE 2: Click into each game ======
+                foreach (var (index, team1, team2, gameTime, gameUuid) in notLive)
+                {
+                    driver.Navigate().GoToUrl(url);
 
-					var scrapedGame = new ScrapedGameDto
-					{
-						GameUuid = gameUuid,
-						LeagueId = league.LeagueId,
-						Team1 = team1,
-						Team2 = team2,
-						GameTime = dateTimeObj,
-						GameUrl = new ScrapedGameUrlDto
-						{
-							GameUrl = gameUrl,
-							SportsbookId = sportsbook.SportsbookId,
-						},
-					};
+                    var gamesAgain = wait.Until(d =>
+                    {
+                        var elements = d.FindElements(By.ClassName("card-shared-container"));
+                        return elements.Count > 0 ? elements.ToList() : null;
+                    });
 
-					scrapedGames.Add(scrapedGame);
-				}
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine($"Error while fetching matchups: {e.Message}");
-			}
+                    var cardHeader = gamesAgain[index].FindElement(By.ClassName("card-row-header"));
+                    var cardFooter = gamesAgain[index].FindElement(By.ClassName("card-regular-footer"));
 
-			return scrapedGames;
-		}
+                    new Actions(driver).MoveToElement(cardFooter).Perform();
 
-		private (List<ScrapedPropDto>, List<ScrapedLineDto>) GetProps(
-	ChromeDriver driver,
-	WebDriverWait wait,
-	Game game,
-	League league
-)
+                    try { cardHeader.Click(); }
+                    catch { ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", cardHeader); }
+
+                    wait.Until(d => d.Url != url);
+                    string gameUrl = driver.Url;
+
+                    var scrapedGame = new ScrapedGameDto
+                    {
+                        GameUuid = gameUuid,
+                        LeagueId = league.LeagueId,
+                        Team1 = team1,
+                        Team2 = team2,
+                        GameTime = gameTime,
+                        GameUrl = new ScrapedGameUrlDto
+                        {
+                            GameUrl = gameUrl,
+                            SportsbookId = sportsbook.SportsbookId,
+                        },
+                    };
+
+                    scrapedGames.Add(scrapedGame);
+
+                    Console.WriteLine($"Scraped {team1} vs {team2} on {gameTime} ({league.LeagueName})");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error while fetching matchups: {e.Message}");
+            }
+
+            return scrapedGames;
+        }
+
+        private (List<ScrapedPropDto>, List<ScrapedLineDto>) GetProps(
+			ChromeDriver driver,
+			WebDriverWait wait,
+			Game game,
+			League league
+		)
 		{
 			var scrapedProps = new List<ScrapedPropDto>();
 			var scrapedLines = new List<ScrapedLineDto>();
@@ -171,9 +225,13 @@ namespace EdgeStats.Scrapers
 
 				driver.Navigate().GoToUrl(url);
 
-				var tabs = wait.Until(drv => drv.FindElements(By.ClassName("tab-filter")));
+                var tabs = wait.Until(d =>
+                {
+                    var elements = d.FindElements(By.ClassName("tab-filter"));
+                    return elements.Any(e => e.Displayed) ? elements : null;
+                });
 
-				for (int i = 1; i < tabs.Count; i++)
+                for (int i = 1; i < tabs.Count; i++)
 				{
 					string tabTitle = tabs[i].Text;
 
@@ -184,20 +242,18 @@ namespace EdgeStats.Scrapers
 					tabs[i].Click();
 					((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, 0);");
 
+
 					// Expand closed divs
 					try
 					{
-						var closedDivs = wait.Until(drv => drv.FindElements(By.ClassName("toggled-opened")));
+						var closedDivs = wait.Until(drv => drv.FindElements(By.ClassName("market-title__toggle-icon--open")));
 						foreach (var div in closedDivs)
 						{
-							new Actions(driver).MoveToElement(div).Perform();
+                            new Actions(driver).MoveToElement(div).Perform();
 							div.Click();
 						}
 					}
-					catch (WebDriverTimeoutException)
-					{
-						Console.WriteLine("No closed divs found for this tab.");
-					}
+					catch (WebDriverTimeoutException){}
 
 					var mainDiv = driver.FindElement(By.ClassName("more-markets"));
 					var propDivs = mainDiv.FindElements(By.XPath("div"));
@@ -228,8 +284,6 @@ namespace EdgeStats.Scrapers
 									PropName = currentPropName,
 									PropType = currentPropType
 								});
-
-								Console.WriteLine($"Found {currentPropType} prop: {currentPropName} at {_sportsbook.SportsbookName}");
 							}
 						}
 						else
@@ -259,7 +313,6 @@ namespace EdgeStats.Scrapers
 									});
 
 									currentPropUuid = playerPropUuid;
-									Console.WriteLine($"Found Player Prop: {combinedPropName} at {_sportsbook.SportsbookName}");
 								}
 							}
 
@@ -292,7 +345,6 @@ namespace EdgeStats.Scrapers
 									Odd = odd   // now double
 								});
 
-								Console.WriteLine($"Found line: {description} at {odd}");
 							}
 						}
 					}
@@ -386,34 +438,6 @@ namespace EdgeStats.Scrapers
 				return 100.0 / (americanOdd + 100.0) * 100.0;
 			else
 				return (-americanOdd) / ((-americanOdd) + 100.0) * 100.0;
-		}
-		private DateTime FliffParseDateTime(string inputStr)
-		{
-			DateTime now = DateTime.Now;
-
-			if (inputStr.Contains("at"))
-			{
-				if (inputStr.StartsWith("Today at "))
-				{
-					string timeStr = inputStr.Replace("Today at ", "");
-					DateTime parsed = DateTime.ParseExact(timeStr, "h:mm tt", CultureInfo.InvariantCulture);
-					return new DateTime(now.Year, now.Month, now.Day, parsed.Hour, parsed.Minute, 0);
-				}
-				else if (inputStr.StartsWith("Tomorrow at "))
-				{
-					string timeStr = inputStr.Replace("Tomorrow at ", "");
-					DateTime parsed = DateTime.ParseExact(timeStr, "h:mm tt", CultureInfo.InvariantCulture);
-					DateTime todayTime = new DateTime(now.Year, now.Month, now.Day, parsed.Hour, parsed.Minute, 0);
-					return todayTime.AddDays(1);
-				}
-				else
-				{
-					// Example: "Jan 5, 2025 at 7:30 PM"
-					return DateTime.ParseExact(inputStr, "MMM d, yyyy 'at' h:mm tt", CultureInfo.InvariantCulture);
-				}
-			}
-
-			throw new ArgumentException($"Unsupported date string format: {inputStr}");
 		}
 	}
 }

@@ -39,7 +39,7 @@ export function getStartsInString(dateTimeStr: Date) {
 function Landing() {
 	const [showFilters, setShowFilters] = useState(false);
 	const [selectedLeagues, setSelectedLeagues] = useState<string[]>(["NFL"]);
-	const [selectedBooks, setSelectedBooks] = useState<string[]>(["Pinnacle"]);
+	const [selectedBooks, setSelectedBooks] = useState<string[]>(["Fliff"]);
 	const filterRef = useRef<HTMLDivElement>(null);
 	const [lines, setLines] = useState<Line[] | null>([]);
 	const [watchlistItems, setWatchlistItems] = useState<number[]>([]);
