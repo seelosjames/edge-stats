@@ -247,7 +247,7 @@ namespace EdgeStats.Scrapers
 					try
 					{
 						var closedDivs = wait.Until(drv => drv.FindElements(By.ClassName("market-title__toggle-icon--open")));
-						foreach (var div in closedDivs)
+                        foreach (var div in closedDivs)
 						{
                             new Actions(driver).MoveToElement(div).Perform();
 							div.Click();
@@ -271,7 +271,6 @@ namespace EdgeStats.Scrapers
 
 						if (className == "more-markets-title")
 						{
-							// Update "current prop" context
 							(currentPropName, currentPropType) = HandlePropTitle(propDiv, tabTitle, game, league);
 							if (!string.IsNullOrEmpty(currentPropName))
 							{
@@ -342,7 +341,7 @@ namespace EdgeStats.Scrapers
 									LineUuid = lineUuid,
 									PropUuid = currentPropUuid.Value,
 									Description = description,
-									Odd = odd   // now double
+									Odd = odd
 								});
 
 							}
