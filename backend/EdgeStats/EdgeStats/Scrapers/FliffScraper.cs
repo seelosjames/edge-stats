@@ -77,8 +77,6 @@ namespace EdgeStats.Scrapers
 			}
 		}
 
-
-
         private List<ScrapedGameDto> GetGames(ChromeDriver driver, WebDriverWait wait, string url, Sportsbook sportsbook, League league)
         {
             var scrapedGames = new List<ScrapedGameDto>();
@@ -242,8 +240,6 @@ namespace EdgeStats.Scrapers
 					tabs[i].Click();
 					((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, 0);");
 
-
-					// Expand closed divs
 					try
 					{
 						var closedDivs = wait.Until(drv => drv.FindElements(By.ClassName("market-title__toggle-icon--open")));
